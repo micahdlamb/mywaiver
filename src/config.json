@@ -1,0 +1,36 @@
+{
+    "steps": {
+        "Activities" : {
+            "fields": {
+                "Activity": {
+                    "type": "enum",
+                    "options": ["Pinball", "Arcade", "Jump House"],
+                    "multiple": true,
+                    "required": true
+                },
+                "Location": {
+                    "type": "enum",
+                    "options": ["inside", "outside"]
+                },
+                "Duration": {
+                    "type": "int",
+                    "required": true
+                }
+            }
+        },
+        "Participants": {
+            "fields": {
+                "First Name": {
+                    "type": "string",
+                    "required": true
+                },
+                "Last Name": {
+                    "type": "string"
+                },
+                "Birthday": {
+                    "type": "date"
+                }
+            }
+        }
+    }
+}
