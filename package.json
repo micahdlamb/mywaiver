@@ -10,6 +10,7 @@
     "@testing-library/user-event": "^7.2.1",
     "formik": "^2.2.0",
     "formik-material-ui": "^3.0.0",
+    "notistack": "^1.0.1",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
     "react-pdf": "^5.0.0",
@@ -37,5 +38,6 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "proxy": "http://localhost:5000"
 }

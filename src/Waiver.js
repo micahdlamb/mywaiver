@@ -1,5 +1,5 @@
 // https://github.com/mui-org/material-ui/tree/master/docs/src/pages/getting-started/templates/checkout
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     makeStyles,
     Stepper,
@@ -19,12 +19,7 @@ import { TextField } from 'formik-material-ui';
 
 import Pdf from './Pdf';
 
-import config from './config.json';
-let initialValues = Object.fromEntries(Object.values(config.steps).map(
-    step => Object.entries(step.fields).map(
-        ([name, field]) => [name, field.multiple ? [] : '']
-    )
-).flat())
+import * as server from './server';
 
 const useStyles = makeStyles((theme) => ({
     stepper: {
@@ -47,8 +42,28 @@ const typeToInput = {
 }
 
 export default function Waiver() {
+
+    let [config, setConfig] = useState(null)
+    let [initialValues, setInitialValues] = useState(null)
+
+    useEffect(() => {
+        server.get_config().then(config => {
+            let initialValues = Object.fromEntries(Object.values(config.steps).map(
+                step => Object.entries(step.fields).map(
+                    ([name, field]) => [name, field.multiple ? [] : '']
+                )
+            ).flat())
+
+            // TODO this renders twice
+            setInitialValues(initialValues)
+            setConfig(config)
+        })
+    }, [])
+
     const classes = useStyles()
     let [activeStep, setActiveStep] = useState(0)
+
+    if (!config) return null
 
     let stepNames = Object.keys(config.steps).concat('Confirm')
     let name = stepNames[activeStep]
