@@ -31,6 +31,16 @@
                     "type": "date"
                 }
             }
+        },
+        "Sign": {
+            "preview": true,
+            "fields": {
+                "Sign": {
+                    "type": "signature",
+                    "required": true
+                }
+            }
+
         }
     }
 }

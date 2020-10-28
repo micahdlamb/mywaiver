@@ -2,6 +2,10 @@ export function get_config(){
     return get('/config')
 }
 
+export function getBasePdf(){
+    return fetch('/waiver.pdf').then(resp => resp.arrayBuffer())
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 function get(url){

@@ -16,11 +16,13 @@
     "react-pdf": "^5.0.0",
     "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.3",
+    "react-signature-canvas": "^1.0.3",
     "react-sizeme": "^2.6.12"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "deploy": "npm run build && scp -r build root@hwsrv-209945.hostwindsdns.com:/root/waiver-sign/",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

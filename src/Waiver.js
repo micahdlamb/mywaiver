@@ -17,6 +17,7 @@ import Page from './Page';
 import { Formik, Form, Field } from 'formik';
 import { TextField } from 'formik-material-ui';
 
+import SignatureInput from './SignatureInput';
 import Pdf from './Pdf';
 
 import * as server from './server';
@@ -43,8 +44,8 @@ const typeToInput = {
 
 export default function Waiver() {
 
-    let [config, setConfig] = useState(null)
-    let [initialValues, setInitialValues] = useState(null)
+    let [config_, setConfig] = useState([])
+    let [config, initialValues] = config_
 
     useEffect(() => {
         server.get_config().then(config => {
@@ -54,9 +55,7 @@ export default function Waiver() {
                 )
             ).flat())
 
-            // TODO this renders twice
-            setInitialValues(initialValues)
-            setConfig(config)
+            setConfig([config, initialValues])
         })
     }, [])
 
@@ -65,16 +64,19 @@ export default function Waiver() {
 
     if (!config) return null
 
-    let stepNames = Object.keys(config.steps).concat('Confirm')
+    let stepNames = Object.keys(config.steps)
     let name = stepNames[activeStep]
     let step = Object.values(config.steps)[activeStep]
 
-    const handleNext = () => {
-        setActiveStep(prevActiveStep => prevActiveStep + 1);
+    const handleBack = () => {
+        setActiveStep(activeStep - 1);
     };
 
-    const handleBack = () => {
-        setActiveStep(prevActiveStep => prevActiveStep - 1);
+    const handleNext = async values => {
+        if (activeStep === stepNames.length - 1)
+            handleSubmit(values)
+        else
+            setActiveStep(activeStep + 1);
     };
 
     const handleSubmit = values => {
@@ -102,61 +104,56 @@ export default function Waiver() {
 
                 return errors;
             }}
-            onSubmit={async (values, { setSubmitting }) => {
-                step ? handleNext() : await handleSubmit()
+            onSubmit={async (values, { setTouched, setSubmitting }) => {
+                await handleNext(values)
+                setTouched({})
                 setSubmitting(false);
             }}
         >
-            {({ submitForm, isSubmitting }) =>
+            {({ submitForm, isSubmitting, values }) =>
                 <Form>
-                    {step ?
-                        <>
-                            <Typography variant="h6" gutterBottom>
-                                {name}
-                            </Typography>
-                            <Grid container spacing={3}>
-                                {Object.entries(step.fields).map(([name, field]) =>
-                                    <Grid item xs={12} key={name}>
-                                        {field.type === 'enum' ?
-                                            <Field
-                                                component={TextField}
-                                                select={true}
-                                                SelectProps={{ multiple: field.multiple }}
-                                                name={name}
-                                                label={name}
-                                                fullWidth
-                                            >
-                                                {field.options.map(option =>
-                                                    <MenuItem key={option} value={option}>{option}</MenuItem>
-                                                )}
-                                            </Field>
-                                            :
-                                            <Field
-                                                component={typeToInput[field.type]}
-                                                multiple={field.multiple}
-                                                name={name}
-                                                label={name}
-                                                fullWidth
-                                            />
-                                        }
-                                    </Grid>
-                                )}
+                    <Typography variant="h6" gutterBottom>
+                        {name}
+                    </Typography>
+                    <Grid container spacing={3}>
+                        {step.preview &&
+                            <Grid item xs={12}>
+                                <PopulatedPdf config={config} values={values} />
                             </Grid>
+                        }
+                        {Object.entries(step.fields).map(([name, field]) =>
+                            <Grid item xs={12} key={name}>
+                                {
+                                    (field.type === 'signature' &&
+                                        <SignatureInput name={name} label={name} />
+                                    ) || (field.type === 'enum' &&
+                                        <Field
+                                            component={TextField}
+                                            select={true}
+                                            SelectProps={{ multiple: field.multiple }}
+                                            name={name}
+                                            label={name}
+                                            fullWidth
+                                        >
+                                            {field.options.map(option =>
+                                                <MenuItem key={option} value={option}>{option}</MenuItem>
+                                            )}
+                                        </Field>
+                                    ) || (
+                                        <Field
+                                            component={typeToInput[field.type]}
+                                            multiple={field.multiple}
+                                            name={name}
+                                            label={name}
+                                            fullWidth
+                                        />
+                                    )
+                                }
+                            </Grid>
+                        )}
+                    </Grid>
 
-                            {isSubmitting && <LinearProgress />}
-
-                        </> :
-                        <>
-                            <Pdf file={'waiver.pdf'}/>
-                            <Typography variant="h5" gutterBottom>
-                                Thank you for your order.
-                            </Typography>
-                            <Typography variant="subtitle1">
-                                Your order number is #2001539. We have emailed your order confirmation, and will
-                                send you an update when your order has shipped.
-                            </Typography>
-                        </>
-                    }
+                    {isSubmitting && <LinearProgress />}
 
                     <div className={classes.buttons}>
                         {activeStep !== 0 && (
@@ -170,11 +167,23 @@ export default function Waiver() {
                             onClick={submitForm}
                             className={classes.button}
                         >
-                            {step ? 'Next' : 'Confirm'}
+                            {activeStep !== stepNames.length - 1 ? 'Next' : 'Submit'}
                         </Button>
                     </div>
                 </Form>
             }
         </Formik>
     </Page>
+}
+
+const PopulatedPdf = ({ config, values }) => {
+    let [file, setFile] = useState(null)
+
+    useEffect(() => {
+        server.getBasePdf().then(basePdf => {
+            setFile(basePdf)
+        })
+    }, [values])
+
+    return <Pdf file={file} />
 }

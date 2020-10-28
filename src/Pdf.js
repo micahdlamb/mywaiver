@@ -14,7 +14,7 @@ function Pdf({file, size}){
 
     return <Document file={file} onLoadSuccess={handleLoadSuccess}>
         {[...Array(numPages).keys()].map(pageNumber =>
-            <Page pageNumber={pageNumber+1} width={size.width}/>
+            <Page key={pageNumber} pageNumber={pageNumber+1} width={size.width}/>
         )}
     </Document>
 }
