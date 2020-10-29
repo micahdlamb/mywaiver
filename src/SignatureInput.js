@@ -55,6 +55,7 @@ function SignatureInput({ value, onChange, label }) {
         canvas.toBlob(async blob => {
             let bytes = await blob.arrayBuffer()
             bytes.dataURL = canvas.toDataURL()
+            bytes.timestamp = new Date()
             onChange(bytes)
         })
     }
@@ -84,11 +85,12 @@ function SignatureInput({ value, onChange, label }) {
         <Dialog
             open={open}
             onClose={e => setOpen(false)}
+            onEntered={restoreSignature}
             maxWidth='xl'
             aria-labelledby="signature-pad"
         >
             {/* <DialogTitle>{label}</DialogTitle> */}
-            <DialogContent className={classes.pad} onEntered={restoreSignature}>
+            <DialogContent className={classes.pad}>
                 <SignatureCanvas ref={pad} />
             </DialogContent>
             <DialogActions>

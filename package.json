@@ -11,6 +11,7 @@
     "formik": "^2.2.0",
     "formik-material-ui": "^3.0.0",
     "notistack": "^1.0.1",
+    "pdf-lib": "^1.11.2",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
     "react-pdf": "^5.0.0",
