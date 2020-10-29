@@ -18,7 +18,7 @@ import { Formik, Form, Field } from 'formik';
 import { TextField } from 'formik-material-ui';
 
 import SignatureInput from './SignatureInput';
-import Pdf from './Pdf';
+import PopulatedPdf from './PopulatedPdf';
 
 import * as server from './server';
 
@@ -35,12 +35,6 @@ const useStyles = makeStyles((theme) => ({
         marginLeft: theme.spacing(1),
     },
 }));
-
-const typeToInput = {
-    'string': TextField,
-    'int': TextField,
-    'date': TextField
-}
 
 export default function Waiver() {
 
@@ -101,7 +95,7 @@ export default function Waiver() {
                     if (!value || value.length === 0)
                         errors[name] = 'required'
                 }
-
+                
                 return errors;
             }}
             onSubmit={async (values, { setTouched, setSubmitting }) => {
@@ -141,7 +135,8 @@ export default function Waiver() {
                                         </Field>
                                     ) || (
                                         <Field
-                                            component={typeToInput[field.type]}
+                                            component={TextField}
+                                            type={field.type}
                                             multiple={field.multiple}
                                             name={name}
                                             label={name}
@@ -174,55 +169,4 @@ export default function Waiver() {
             }
         </Formik>
     </Page>
-}
-
-const PopulatedPdf = ({ config, values }) => {
-    let [file, setFile] = useState(null)
-
-    useEffect(() => {
-        server.getBasePdf().then(async basePdf => {
-            let {PDFDocument, StandardFonts} = await import('pdf-lib')
-            const pdf = await PDFDocument.load(basePdf)
-            const pages = pdf.getPages()
-            const page = pages[0]
-            const { height } = page.getSize()
-            const helveticaFont = await pdf.embedFont(StandardFonts.Helvetica)
-
-            for (let step of Object.values(config.steps)){
-                for (let [name, field] of Object.entries(step.fields)){
-                    let value = values[name]
-                    if (!value || value.length === 0) continue
-                    let pos = field.position
-                    if (!pos) continue
-
-                    if (value instanceof ArrayBuffer){
-                        let png = await pdf.embedPng(value)
-                        page.drawImage(png, {
-                            x: pos.left,
-                            y: height - (pos.top + pos.height),
-                            width: pos.width,
-                            height: pos.height
-                        })
-
-                        value = value.timestamp
-                        pos = field.timestampPosition
-                        if (!pos) continue
-                        value = value.toDateString()
-                    }
-                    
-                    page.drawText(value.toString(), {
-                        x: pos.left,
-                        y: height - (pos.top + pos.height),
-                        size: pos.height * 1.25,
-                        font: helveticaFont,
-                    })
-                }
-            }
-
-            let data = await pdf.save()
-            setFile({data})
-        })
-    }, [config, values])
-
-    return file && <Pdf file={file} />
 }

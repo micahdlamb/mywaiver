@@ -9,7 +9,7 @@
                     "position": {"left":326,"top":60,"width":89,"height":8}
                 },
                 "Duration": {
-                    "type": "int",
+                    "type": "number",
                     "required": true,
                     "position": {"left":66,"top":275,"width":89,"height":8}
                 }
@@ -18,17 +18,17 @@
         "Participant": {
             "fields": {
                 "Name": {
-                    "type": "string",
+                    "type": "text",
                     "required": true,
                     "position": {"left":93,"top":84,"width":111,"height":8}
                 },
                 "Age": {
-                    "type": "int",
+                    "type": "number",
                     "required": true,
                     "position": {"left":290,"top":419,"width":53,"height":8}
                 },
                 "Phone": {
-                    "type": "string",
+                    "type": "tel",
                     "position": {"left":325,"top":575,"width":64,"height":8}
                 }
             }
