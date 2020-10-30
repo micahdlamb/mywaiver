@@ -3,8 +3,8 @@ export function get_config(){
 }
 
 let basePdf = null
-export function getBasePdf(){
-    basePdf = basePdf || fetch('/waiver.pdf').then(resp => resp.arrayBuffer())
+export function getBasePdf(url){
+    basePdf = basePdf || fetch(url).then(resp => resp.arrayBuffer())
     return basePdf
 }
 

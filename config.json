@@ -34,7 +34,9 @@
             }
         },
         "Sign": {
-            "preview": {
+            "pdf": {
+                "url": "/waiver.pdf",
+                "width": 612,
                 "height": 792
             },
             "fields": {

@@ -105,9 +105,9 @@ export default function Waiver() {
             {({ submitForm, isSubmitting, values }) =>
                 <Form>
                     <Grid container spacing={3}>
-                        {step.preview &&
-                            <Grid item xs={12} style={{ height: step.preview.height }}>
-                                <PopulatedPdf config={config} values={values} />
+                        {step.pdf &&
+                            <Grid item xs={12}>
+                                <PopulatedPdf config={config} values={values} {...step.pdf}/>
                             </Grid>
                         }
                         {Object.entries(step.fields).map(([name, field]) =>

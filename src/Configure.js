@@ -26,7 +26,7 @@ const useStyles = makeStyles(theme => ({
 export default function Configure() {
     let classes = useStyles()
     let [coords, setCoords] = useState({})
-    let [height, setHeight] = useState(null)
+    let [dim, setDim] = useState({})
 
     let [numPages, setNumPages] = useState(0)
     function handleLoadSuccess({ numPages }) {
@@ -74,7 +74,8 @@ export default function Configure() {
     })
 
     function handleRenderSuccess(){
-        setHeight(document.querySelector('.react-pdf__Document').clientHeight)
+        const container = document.querySelector('.react-pdf__Document')
+        setDim({width: container.clientWidth, height: container.clientHeight})
     }
 
     return <Box p={1}>
@@ -89,7 +90,7 @@ export default function Configure() {
             </Document>
         </div>
         <Typography align='center' color='primary'>
-            {height}
+            {JSON.stringify(dim)}
         </Typography>
     </Box>
 }
