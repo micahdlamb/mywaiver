@@ -18,7 +18,7 @@ const useStyles = makeStyles((theme) => ({
         display: 'flex',
         '& > div:first-child': {
             flex: 1,
-            border: '1px solid grey',
+            border: '1px solid #f50057',
             borderRight: 0,
             borderRadius: '5px 0 0 5px',
             display: 'flex',

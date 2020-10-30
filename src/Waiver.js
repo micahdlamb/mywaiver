@@ -6,7 +6,6 @@ import {
     Step,
     StepLabel,
     Button,
-    Typography,
     Grid,
     LinearProgress,
     MenuItem
@@ -59,7 +58,6 @@ export default function Waiver() {
     if (!config) return null
 
     let stepNames = Object.keys(config.steps)
-    let name = stepNames[activeStep]
     let step = Object.values(config.steps)[activeStep]
 
     const handleBack = () => {
@@ -95,7 +93,7 @@ export default function Waiver() {
                     if (!value || value.length === 0)
                         errors[name] = 'required'
                 }
-                
+
                 return errors;
             }}
             onSubmit={async (values, { setTouched, setSubmitting }) => {
@@ -106,9 +104,6 @@ export default function Waiver() {
         >
             {({ submitForm, isSubmitting, values }) =>
                 <Form>
-                    <Typography variant="h6" gutterBottom>
-                        {name}
-                    </Typography>
                     <Grid container spacing={3}>
                         {step.preview &&
                             <Grid item xs={12} style={{ height: step.preview.height }}>

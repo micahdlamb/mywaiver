@@ -30,10 +30,9 @@ export default function PopulatedPdf({ config, values }){
                             height: pos.height
                         })
 
-                        value = value.timestamp
+                        value = value.timestamp.toDateString()
                         pos = field.timestampPosition
                         if (!pos) continue
-                        value = value.toDateString()
                     }
                     
                     page.drawText(value.toString(), {
