@@ -13,7 +13,7 @@ app.secret_key = 'sup3rsp1cy'
 
 @app.route('/config', methods=['GET'])
 async def get_config():
-    return await send_from_directory(root, "config.json")
+    return await send_from_directory(root, "config.json", cache_timeout=-1)
 
 @app.route('/config', methods=['POST'])
 async def save_config():
