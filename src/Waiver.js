@@ -1,5 +1,6 @@
 // https://github.com/mui-org/material-ui/tree/master/docs/src/pages/getting-started/templates/checkout
 import React, { useState, useEffect } from 'react';
+import { useParams } from "react-router-dom";
 import {
     makeStyles,
     Stepper,
@@ -36,12 +37,14 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function Waiver() {
-
+    const classes = useStyles()
+    let { waiver } = useParams()
+    let [activeStep, setActiveStep] = useState(0)
     let [config_, setConfig] = useState([])
     let [config, initialValues] = config_
 
     useEffect(() => {
-        server.get_config().then(config => {
+        server.get_config(waiver).then(config => {
             let initialValues = Object.fromEntries(Object.values(config.steps).map(
                 step => Object.entries(step.fields).map(
                     ([name, field]) => [name, field.multiple ? [] : '']
@@ -50,10 +53,7 @@ export default function Waiver() {
 
             setConfig([config, initialValues])
         })
-    }, [])
-
-    const classes = useStyles()
-    let [activeStep, setActiveStep] = useState(0)
+    }, [waiver])
 
     if (!config) return null
 
@@ -75,7 +75,7 @@ export default function Waiver() {
         alert('Send the pdf somewhere')
     }
 
-    return <Page title='Waiver' contentWidth={600}>
+    return <Page title={config.name} contentWidth={600}>
         <Stepper activeStep={activeStep} className={classes.stepper}>
             {stepNames.map(name =>
                 <Step key={name}>
@@ -105,9 +105,9 @@ export default function Waiver() {
             {({ submitForm, isSubmitting, values }) =>
                 <Form>
                     <Grid container spacing={3}>
-                        {step.pdf &&
+                        {step.showPdf &&
                             <Grid item xs={12}>
-                                <PopulatedPdf config={config} values={values} {...step.pdf}/>
+                                <PopulatedPdf config={config} values={values} {...config.pdf} />
                             </Grid>
                         }
                         {Object.entries(step.fields).map(([name, field]) =>
@@ -115,7 +115,7 @@ export default function Waiver() {
                                 {
                                     (field.type === 'signature' &&
                                         <SignatureInput name={name} label={name} />
-                                    ) || (field.type === 'enum' &&
+                                    ) || (field.type === 'select' &&
                                         <Field
                                             component={TextField}
                                             select={true}

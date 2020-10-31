@@ -9,16 +9,22 @@ root = Path(__file__).parent
 app = Quart(__name__, static_folder='build')
 app.secret_key = 'sup3rsp1cy'
 
+configs = [file.stem for file in (root / 'configs').glob('*.json')]
+
 # API ##################################################################################################################
 
-@app.route('/config', methods=['GET'])
-async def get_config():
-    return await send_from_directory(root, "config.json", cache_timeout=-1)
+@app.route('/configs', methods=['GET'])
+async def get_configs():
+    return jsonify(configs)
 
-@app.route('/config', methods=['POST'])
-async def save_config():
+@app.route('/config/<waiver>', methods=['GET'])
+async def get_config(waiver):
+    return await send_from_directory(root / 'configs', f"{waiver}.json", cache_timeout=-1)
+
+@app.route('/config/<waiver>', methods=['POST'])
+async def save_config(waiver):
     json = await request.get_data()
-    async with AIOFile(root / "config.json", 'w') as f:
+    async with AIOFile(root / 'configs' / f"{waiver}.json", 'w') as f:
         await f.write(json)
 
     return jsonify("great success")

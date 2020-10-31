@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from "react-router-dom";
 import { Document, Page } from 'react-pdf';
 import {
     makeStyles,
     Box,
     Typography
 } from '@material-ui/core';
+
+import * as server from './server';
 
 const useStyles = makeStyles(theme => ({
     center: {
@@ -24,16 +27,20 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export default function Configure() {
-    let classes = useStyles()
+    const classes = useStyles()
+    let { waiver } = useParams()
+    let [config, setConfig] = useState(null)
     let [coords, setCoords] = useState({})
     let [dim, setDim] = useState({})
-
     let [numPages, setNumPages] = useState(0)
-    function handleLoadSuccess({ numPages }) {
-        setNumPages(numPages)
-    }
 
     useEffect(() => {
+        server.get_config(waiver).then(setConfig)
+    }, [waiver])
+
+    useEffect(() => {
+        if (!config) return
+
         const container = document.querySelector('.react-pdf__Document')
         let start, end, div
 
@@ -73,6 +80,12 @@ export default function Configure() {
         }
     })
 
+    if (!config) return null
+
+    function handleLoadSuccess({ numPages }) {
+        setNumPages(numPages)
+    }
+
     function handleRenderSuccess(){
         const container = document.querySelector('.react-pdf__Document')
         setDim({width: container.clientWidth, height: container.clientHeight})
@@ -83,14 +96,14 @@ export default function Configure() {
             {JSON.stringify(coords)}
         </Typography>
         <div className={classes.center}>
-            <Document file={'waiver.pdf'} onLoadSuccess={handleLoadSuccess}>
+            <Document file={config.pdf.url} onLoadSuccess={handleLoadSuccess}>
                 {[...Array(numPages).keys()].map(pageNumber =>
                     <Page key={pageNumber} pageNumber={pageNumber + 1} renderTextLayer={false} onRenderSuccess={handleRenderSuccess}/>
                 )}
             </Document>
         </div>
         <Typography align='center' color='primary'>
-            {JSON.stringify(dim)}
+            {JSON.stringify({...config.pdf, ...dim})}
         </Typography>
     </Box>
 }

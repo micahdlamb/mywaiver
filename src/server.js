@@ -1,44 +1,26 @@
-export function get_config(){
-    return get('/config')
+export function get_configs(){
+    return getCached('/configs')
 }
 
-let basePdf = null
+export function get_config(waiver){
+    return getCached(`/config/${waiver}`)
+}
+
 export function getBasePdf(url){
-    basePdf = basePdf || fetch(url).then(resp => resp.arrayBuffer())
-    return basePdf
+    return getCached(url, arrayBuffer)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-function get(url){
-    return fetchJson('GET', url)
+function get(url, as=json, cache=false){
+    return fetch(url).then(as)
 }
+let json = resp => resp.json()
+let arrayBuffer = resp => resp.arrayBuffer()
 
-// function post(url, body){
-//     return fetchJson('POST', url, body)
-// }
-
-// function put(url, body){
-//     return fetchJson('PUT', url, body)
-// }
-
-// function del(url){
-//     return fetchJson('DELETE', url)
-// }
-
-function fetchJson(method, url, body){
-    return fetch(url, {
-        method,
-        credentials: 'include',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: body && JSON.stringify(body)
-    }).then(response => {
-        if (!response.ok)
-            throw Error(response.statusText)
-        return response.json()
-    }).catch(error => {
-        window.enqueueSnackbar(error.message, {variant: 'error'})
-    })
+function getCached(url, as){
+    if (!_cache[url])
+        _cache[url] = get(url, as)
+    return _cache[url]
 }
+const _cache = {}
