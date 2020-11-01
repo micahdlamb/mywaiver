@@ -10,6 +10,7 @@ quart = "*"
 requests-async = "*"
 asyncio = "*"
 aiofile = "*"
+aiosmtplib = "*"
 
 [requires]
 python_version = "3.7"
