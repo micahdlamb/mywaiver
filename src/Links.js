@@ -18,6 +18,9 @@ import * as server from './server';
 const useStyles = makeStyles((theme) => ({
     root: {
         backgroundColor: theme.palette.background.paper,
+        '& a.MuiLink-root': {
+            flex: 1
+        }
     }
 }));
 
@@ -36,13 +39,13 @@ export default function Links() {
                     <Link component={RouterLink} to={`/${config}`}>
                         {config}
                     </Link>
-                    <RouterLink to={`/configure/${config}`}>
-                        <ListItemSecondaryAction>
+                    <ListItemSecondaryAction>
+                        <RouterLink to={`/configure/${config}`}>
                             <IconButton edge="end" aria-label="configure">
                                 <SettingsIcon />
                             </IconButton>
-                        </ListItemSecondaryAction>
-                    </RouterLink>
+                        </RouterLink>
+                    </ListItemSecondaryAction>
                 </ListItem>
             )}
         </List>

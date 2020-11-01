@@ -1,13 +1,22 @@
 export function get_configs(){
-    return getCached('/configs')
+    return getCached('/get_configs')
 }
 
 export function get_config(waiver){
-    return getCached(`/config/${waiver}`)
+    return getCached(`/${waiver}/get_config`)
 }
 
 export function getBasePdf(url){
     return getCached(url, arrayBuffer)
+}
+
+export function submit_waiver(waiver, pdfBytes){
+    const formData = new FormData()
+    formData.set('pdf', new Blob([pdfBytes], {type: 'application/pdf'}))
+    return fetch(`/${waiver}/submit`, {
+        method: 'POST',
+        body: formData
+    }).then(resp => resp.json())
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

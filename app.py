@@ -1,6 +1,5 @@
-import os, functools, collections
-from quart import Quart, jsonify, url_for, request, send_from_directory, redirect, session, abort
-import requests_async as requests
+import os, json
+from quart import Quart, jsonify, request, send_from_directory
 from aiofile import AIOFile
 
 from pathlib import Path
@@ -9,25 +8,54 @@ root = Path(__file__).parent
 app = Quart(__name__, static_folder='build')
 app.secret_key = 'sup3rsp1cy'
 
-configs = [file.stem for file in (root / 'configs').glob('*.json')]
+configs = {path.stem : json.loads(path.read_text()) for path in (root / 'configs').glob('*.json')}
+configNames = [*configs.keys()]
 
 # API ##################################################################################################################
 
-@app.route('/configs', methods=['GET'])
+@app.route('/get_configs', methods=['GET'])
 async def get_configs():
-    return jsonify(configs)
+    return jsonify(configNames)
 
-@app.route('/config/<waiver>', methods=['GET'])
+@app.route('/<waiver>/get_config', methods=['GET'])
 async def get_config(waiver):
     return await send_from_directory(root / 'configs', f"{waiver}.json", cache_timeout=-1)
 
-@app.route('/config/<waiver>', methods=['POST'])
+@app.route('/<waiver>/save_config', methods=['POST'])
 async def save_config(waiver):
     json = await request.get_data()
     async with AIOFile(root / 'configs' / f"{waiver}.json", 'w') as f:
         await f.write(json)
 
     return jsonify("great success")
+
+@app.route('/<waiver>/submit', methods=['POST'])
+async def submit_waiver(waiver):
+    files = await request.files
+    pdf = files['pdf'].read()
+    config = configs[waiver]
+    email_to = config['pdf'].get('emailTo')
+    if (email_to):
+        await email_pdf(pdf, email_to)
+
+    return jsonify("great success")
+
+async def email_pdf(pdf, to):
+    import aiosmtplib
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.application import MIMEApplication
+
+    msg = MIMEMultipart()
+    msg['Subject'] = "Signed Waiver"
+
+    part = MIMEApplication(pdf, _subtype='pdf')
+    part.add_header('Content-Disposition', 'attachment; filename="waiver.pdf"')
+    msg.attach(part)
+
+    async with aiosmtplib.SMTP('smtp.gmail.com', 587) as server:
+        await server.starttls()
+        await server.login(os.environ['from_email'], os.environ['gmail_app_password'])
+        await server.send_message(msg, os.environ['from_email'], to.split())
 
 # Serve React App ######################################################################################################
 

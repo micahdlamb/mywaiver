@@ -8,6 +8,7 @@ import {
     StepLabel,
     Button,
     Grid,
+    Box,
     LinearProgress,
     MenuItem
 } from '@material-ui/core';
@@ -18,7 +19,7 @@ import { Formik, Form, Field } from 'formik';
 import { TextField } from 'formik-material-ui';
 
 import SignatureInput from './SignatureInput';
-import PopulatedPdf from './PopulatedPdf';
+import PopulatedPdf, { populatePdf } from './PopulatedPdf';
 
 import * as server from './server';
 
@@ -66,13 +67,15 @@ export default function Waiver() {
 
     const handleNext = async values => {
         if (activeStep === stepNames.length - 1)
-            handleSubmit(values)
+            await handleSubmit(values)
         else
             setActiveStep(activeStep + 1);
     };
 
-    const handleSubmit = values => {
-        alert('Send the pdf somewhere')
+    const handleSubmit = async values => {
+        await server.submit_waiver(waiver, await populatePdf(config, values))
+        window.enqueueSnackbar('Thank you for your submission!', { variant: 'success' })
+        setTimeout(() => window.location.reload(), 5000)
     }
 
     return <Page title={config.name} contentWidth={600}>
@@ -107,7 +110,7 @@ export default function Waiver() {
                     <Grid container spacing={3}>
                         {step.showPdf &&
                             <Grid item xs={12}>
-                                <PopulatedPdf config={config} values={values} {...config.pdf} />
+                                <PopulatedPdf config={config} values={values} />
                             </Grid>
                         }
                         {Object.entries(step.fields).map(([name, field]) =>
@@ -143,8 +146,6 @@ export default function Waiver() {
                         )}
                     </Grid>
 
-                    {isSubmitting && <LinearProgress />}
-
                     <div className={classes.buttons}>
                         {activeStep !== 0 && (
                             <Button onClick={handleBack} className={classes.button}>
@@ -156,10 +157,17 @@ export default function Waiver() {
                             color="primary"
                             onClick={submitForm}
                             className={classes.button}
+                            disabled={isSubmitting}
                         >
                             {activeStep !== stepNames.length - 1 ? 'Next' : 'Submit'}
                         </Button>
                     </div>
+
+                    {isSubmitting &&
+                        <Box m={1}>
+                            <LinearProgress />
+                        </Box>
+                    }
                 </Form>
             }
         </Formik>

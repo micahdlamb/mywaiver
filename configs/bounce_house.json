@@ -2,6 +2,7 @@
     "name": "Bounce House Waiver",
     "pdf": {
         "url": "/waiver.pdf",
+        "emailTo": "micah.d.lamb@gmail.com",
         "width": 612,
         "height": 792
     },
