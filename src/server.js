@@ -1,35 +1,70 @@
-export function get_configs(){
-    return getCached('/get_configs')
+export async function login(body) {
+  await fetch("/login", {
+    method: "POST",
+    body,
+  });
+  _cache = {};
 }
 
-export function get_config(waiver){
-    return getCached(`/${waiver}/get_config`)
+export async function logout() {
+  await fetch("/logout", {
+    method: "POST",
+  });
+  _cache = {};
 }
 
-export function getBasePdf(url){
-    return getCached(url, arrayBuffer)
+export function get_user() {
+  return getSuspense("/get_user");
 }
 
-export function submit_waiver(waiver, pdfBytes){
-    const formData = new FormData()
-    formData.set('pdf', new Blob([pdfBytes], {type: 'application/pdf'}))
-    return fetch(`/${waiver}/submit`, {
-        method: 'POST',
-        body: formData
-    }).then(resp => resp.json())
+export function get_configs() {
+  return getSuspense("/get_configs");
+}
+
+export function get_config(waiver) {
+  return getSuspense(`/${waiver}/get_config`);
+}
+
+export function getBasePdf(url) {
+  return getCached(url, asArrayBuffer);
+}
+
+export function submit_waiver(waiver, pdfBytes, values) {
+  let pdf = new Blob([pdfBytes], { type: "application/pdf" });
+  let formData = toFormData({ ...values, pdf });
+  return fetch(`/${waiver}/submit`, {
+    method: "POST",
+    body: formData,
+  }).then((resp) => resp.json());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-function get(url, as=json, cache=false){
-    return fetch(url).then(as)
+function get(url, as = asJson) {
+  return fetch(url).then(as);
 }
-let json = resp => resp.json()
-let arrayBuffer = resp => resp.arrayBuffer()
+let asJson = (resp) => resp.json();
+let asArrayBuffer = (resp) => resp.arrayBuffer();
 
-function getCached(url, as){
-    if (!_cache[url])
-        _cache[url] = get(url, as)
-    return _cache[url]
+function getCached(url, ...args) {
+  if (!_cache[url]) _cache[url] = get(url, ...args);
+  return _cache[url];
 }
-const _cache = {}
+let _cache = {};
+
+function getSuspense(url, ...args) {
+  let promise = getCached(url, ...args);
+  if (promise.value !== undefined) return promise.value;
+  promise.then((value) => (promise.value = value));
+  throw promise;
+}
+
+function toFormData(obj) {
+  let formData = new FormData();
+  for (let [key, value] of Object.entries(obj)) {
+    if (value == null || value.length === 0) continue;
+    // valueOf converts date/moment to millis
+    formData.set(key, value.valueOf());
+  }
+  return formData;
+}

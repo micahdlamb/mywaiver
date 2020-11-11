@@ -1,5 +1,5 @@
 import os, json
-from quart import Quart, jsonify, request, send_from_directory
+from quart import Quart, jsonify, request, session, send_from_directory
 from aiofile import AIOFile
 
 from pathlib import Path
@@ -9,13 +9,27 @@ app = Quart(__name__, static_folder='build')
 app.secret_key = 'sup3rsp1cy'
 
 configs = {path.stem : json.loads(path.read_text()) for path in (root / 'configs').glob('*.json')}
-configNames = [*configs.keys()]
 
 # API ##################################################################################################################
 
+@app.route('/login', methods=['POST'])
+async def login():
+    form = await request.form
+    session['user'] = form['email'].split("@")[0]
+    return jsonify("great success")
+
+@app.route('/logout', methods=['POST'])
+def logout():
+    del session['user']
+    return jsonify("great success")
+
+@app.route('/get_user', methods=['GET'])
+def get_user():
+    return jsonify(session.get("user"))
+
 @app.route('/get_configs', methods=['GET'])
 async def get_configs():
-    return jsonify(configNames)
+    return jsonify([waiver for waiver, config in configs.items() if config.get('owner') == session.get('user')])
 
 @app.route('/<waiver>/get_config', methods=['GET'])
 async def get_config(waiver):

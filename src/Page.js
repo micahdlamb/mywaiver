@@ -1,5 +1,5 @@
 // https://github.com/mui-org/material-ui/tree/master/docs/src/pages/getting-started/templates/checkout
-import React from 'react';
+import React, { Suspense } from "react";
 import {
   makeStyles,
   CssBaseline,
@@ -8,37 +8,42 @@ import {
   Paper,
   Link,
   Typography,
-} from '@material-ui/core';
+} from "@material-ui/core";
+
+import { LoggedInUser } from "./Login";
 
 function Copyright() {
   return (
     <Typography variant="body2" color="textSecondary" align="center">
-      {'Copyright © '}
+      {"Copyright © "}
       <Link color="inherit" href="https://material-ui.com/">
         Waiver Sign
-      </Link>{' '}
+      </Link>{" "}
       {new Date().getFullYear()}
-      {'.'}
+      {"."}
     </Typography>
   );
 }
 
 const useStyles = makeStyles((theme) => ({
   appBar: {
-    position: 'relative',
+    position: "relative",
+  },
+  title: {
+    flexGrow: 1,
   },
   layout: {
-    width: 'auto',
-    overflow: 'hidden',
+    width: "auto",
     marginLeft: theme.spacing(2),
     marginRight: theme.spacing(2),
     [theme.breakpoints.up(600 + theme.spacing(2) * 2)]: {
-      width: props => props.contentWidth,
-      marginLeft: 'auto',
-      marginRight: 'auto',
+      width: (props) => props.contentWidth,
+      marginLeft: "auto",
+      marginRight: "auto",
     },
   },
   paper: {
+    overflow: "hidden",
     marginTop: theme.spacing(3),
     marginBottom: theme.spacing(3),
     padding: theme.spacing(2),
@@ -47,29 +52,39 @@ const useStyles = makeStyles((theme) => ({
       marginBottom: theme.spacing(6),
       padding: theme.spacing(3),
     },
-  }
+  },
 }));
 
-function Page({title, contentWidth, children}) {
-  const classes = useStyles({contentWidth})
+function Page({ title, contentWidth, showUser, showCopyright, children }) {
+  const classes = useStyles({ contentWidth });
 
-  return <>
-    <CssBaseline />
-    <AppBar position="absolute" color="default" className={classes.appBar}>
-      <Toolbar>
-        <Typography variant="h6" color="inherit" noWrap>
-          {title}
-        </Typography>
-      </Toolbar>
-    </AppBar>
+  return (
+    <>
+      <CssBaseline />
+      <AppBar position="absolute" className={classes.appBar}>
+        <Toolbar>
+          <Typography
+            className={classes.title}
+            variant="h6"
+            color="inherit"
+            noWrap
+          >
+            {title}
+          </Typography>
+          {showUser && (
+            <Suspense fallback={null}>
+              <LoggedInUser />
+            </Suspense>
+          )}
+        </Toolbar>
+      </AppBar>
 
-    <main className={classes.layout}>
-      <Paper className={classes.paper}>
-        {children}
-      </Paper>
-      <Copyright />
-    </main>
-  </>
+      <main className={classes.layout}>
+        {children && <Paper className={classes.paper}>{children}</Paper>}
+        {showCopyright && <Copyright />}
+      </main>
+    </>
+  );
 }
 
 export default Page;
