@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import { SnackbarProvider, useSnackbar } from "notistack";
 
 import Page from "./Page";
-import Login from "./Login";
 import User from "./User";
 import Links from "./Links";
 import Waiver from "./Waiver";
@@ -18,9 +17,6 @@ export default function App() {
           <Switch>
             <Route exact path="/">
               <Links />
-            </Route>
-            <Route exact path="/login">
-              <Login />
             </Route>
             <Route exact path="/user">
               <User />

@@ -1,5 +1,6 @@
 import os, json
 from quart import Quart, jsonify, request, session, send_from_directory
+import requests_async as requests
 from aiofile import AIOFile
 
 from pathlib import Path
@@ -15,7 +16,10 @@ configs = {path.stem : json.loads(path.read_text()) for path in (root / 'configs
 @app.route('/login', methods=['POST'])
 async def login():
     form = await request.form
-    session['user'] = form['email'].split("@")[0]
+    token = form['token']
+    resp = await requests.get(f"https://oauth2.googleapis.com/tokeninfo?id_token={token}")
+    user = resp.json()
+    session['user'] = user['email']
     return jsonify("great success")
 
 @app.route('/logout', methods=['POST'])

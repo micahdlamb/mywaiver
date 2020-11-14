@@ -1,4 +1,8 @@
-export async function login(body) {
+export async function login() {
+  let auth = await getAuth();
+  let user = await auth.signIn();
+  let token = user.getAuthResponse().id_token;
+  let body = toFormData({ token });
   await fetch("/login", {
     method: "POST",
     body,
@@ -7,10 +11,18 @@ export async function login(body) {
 }
 
 export async function logout() {
+  let auth = await getAuth();
+  auth.signOut();
   await fetch("/logout", {
     method: "POST",
   });
   _cache = {};
+}
+
+function getAuth() {
+  return new Promise((resolve) =>
+    window.gapi.load("auth2", () => resolve(window.gapi.auth2.init()))
+  );
 }
 
 export function get_user() {

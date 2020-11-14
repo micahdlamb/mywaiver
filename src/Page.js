@@ -1,5 +1,6 @@
 // https://github.com/mui-org/material-ui/tree/master/docs/src/pages/getting-started/templates/checkout
-import React, { Suspense } from "react";
+import React from "react";
+import { useHistory } from "react-router-dom";
 import {
   makeStyles,
   CssBaseline,
@@ -8,16 +9,19 @@ import {
   Paper,
   Link,
   Typography,
+  Button,
+  IconButton,
 } from "@material-ui/core";
+import AccountCircle from "@material-ui/icons/AccountCircle";
 
-import { LoggedInUser } from "./Login";
+import * as server from "./server";
 
 function Copyright() {
   return (
     <Typography variant="body2" color="textSecondary" align="center">
       {"Copyright © "}
       <Link color="inherit" href="https://material-ui.com/">
-        Waiver Sign
+        My Waiver App
       </Link>{" "}
       {new Date().getFullYear()}
       {"."}
@@ -55,8 +59,20 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function Page({ title, contentWidth, showUser, showCopyright, children }) {
+export default function Page({
+  title,
+  contentWidth,
+  showUser,
+  showCopyright,
+  children,
+}) {
   const classes = useStyles({ contentWidth });
+  let history = useHistory();
+
+  async function login() {
+    await server.login();
+    window.location.reload();
+  }
 
   return (
     <>
@@ -71,11 +87,19 @@ function Page({ title, contentWidth, showUser, showCopyright, children }) {
           >
             {title}
           </Typography>
-          {showUser && (
-            <Suspense fallback={null}>
-              <LoggedInUser />
-            </Suspense>
-          )}
+          {showUser &&
+            (server.get_user() ? (
+              <IconButton
+                color="inherit"
+                onClick={(e) => history.push("/user")}
+              >
+                <AccountCircle />
+              </IconButton>
+            ) : (
+              <Button color="inherit" onClick={login}>
+                Login
+              </Button>
+            ))}
         </Toolbar>
       </AppBar>
 
@@ -86,5 +110,3 @@ function Page({ title, contentWidth, showUser, showCopyright, children }) {
     </>
   );
 }
-
-export default Page;
