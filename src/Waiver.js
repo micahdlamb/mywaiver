@@ -136,7 +136,7 @@ export default function Waiver() {
                       <Field
                         component={TextField}
                         type={field.type}
-                        multiple={field.multiple}
+                        multiline={field.multiline}
                         name={name}
                         label={name}
                         fullWidth

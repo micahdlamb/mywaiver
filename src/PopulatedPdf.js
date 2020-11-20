@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import * as server from './server';
 import { Document, Page } from 'react-pdf';
 import { withSize } from 'react-sizeme';
+import { format } from 'date-fns'
 
 import { pdfjs } from 'react-pdf';
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
@@ -59,9 +60,11 @@ export async function populatePdf(config, values) {
                     height: pos.height
                 })
 
-                value = value.timestamp.toDateString()
                 pos = field.timestampPosition
                 if (!pos) continue
+                value = config.timestampFormat ?
+                  format(value.timestamp, config.timestampFormat)
+                : value.timestamp.toDateString()
             }
 
             page.drawText(value.toString(), {
