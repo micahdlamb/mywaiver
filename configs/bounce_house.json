@@ -21,9 +21,9 @@
                 },
                 "Children Names": {
                     "type": "text",
-                    "multiline": true,
                     "required": true,
-                    "position": {"left":322,"top":539,"width":124,"height":8}
+                    "multiple": true,
+                    "position": {"left":322,"top":539,"width":124,"height":8,"vertical":true}
                 }
             }
         },

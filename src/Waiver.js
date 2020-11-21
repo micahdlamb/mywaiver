@@ -15,6 +15,7 @@ import {
 
 import { Formik, Form, Field } from "formik";
 import { TextField } from "formik-material-ui";
+import ChipInput from "./ChipInput";
 
 import Page from "./Page";
 import SignatureInput from "./SignatureInput";
@@ -134,7 +135,7 @@ export default function Waiver() {
                       </Field>
                     )) || (
                       <Field
-                        component={TextField}
+                        component={field.multiple ? ChipInput : TextField}
                         type={field.type}
                         multiline={field.multiline}
                         name={name}

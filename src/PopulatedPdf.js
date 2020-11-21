@@ -67,6 +67,9 @@ export async function populatePdf(config, values) {
                 : value.timestamp.toDateString()
             }
 
+            if (Array.isArray(value))
+              value = value.join(pos.vertical ? '\n' : ', ')
+
             page.drawText(value.toString(), {
                 x: pos.left,
                 y: height - (pos.top + pos.height),
