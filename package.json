@@ -26,7 +26,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "deploy": "npm run build && scp -r build root@hwsrv-209945.hostwindsdns.com:/root/waiver-sign/",
+    "deploy": "npm run build && scp -r build root@hwsrv-209945.hostwindsdns.com:/root/mywaiver/",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

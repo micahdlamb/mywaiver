@@ -4,7 +4,7 @@ import aioodbc
 async def connect():
     global conn
     conn = await aioodbc.connect(dsn=f"""
-        DRIVER={{SQL Server}};
+        DRIVER={os.environ['db_driver']};
         SERVER=medfairprice.database.windows.net;
         DATABASE=medfairprice;
         UID={os.environ['db_uid']};
