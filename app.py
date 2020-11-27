@@ -1,13 +1,15 @@
 import os, json
 from quart import Quart, jsonify, request, session, send_from_directory
-import requests_async as requests
 from aiofile import AIOFile
+import httpx; http = httpx.AsyncClient()
+import db
 
 from pathlib import Path
 root = Path(__file__).parent
 
 app = Quart(__name__, static_folder='build')
 app.secret_key = 'sup3rsp1cy'
+app.before_serving(db.connect)
 
 configs = {path.stem : json.loads(path.read_text()) for path in (root / 'configs').glob('*.json')}
 
@@ -17,7 +19,7 @@ configs = {path.stem : json.loads(path.read_text()) for path in (root / 'configs
 async def login():
     form = await request.form
     token = form['token']
-    resp = await requests.get(f"https://oauth2.googleapis.com/tokeninfo?id_token={token}")
+    resp = await http.get(f"https://oauth2.googleapis.com/tokeninfo?id_token={token}")
     user = resp.json()
     session['user'] = user['email']
     return jsonify("great success")
@@ -51,7 +53,9 @@ async def save_config(waiver):
 async def submit_waiver(waiver):
     files = await request.files
     pdf = files['pdf'].read()
+    form = await request.form
     config = configs[waiver]
+    await db.save_waiver(config, pdf, form)
     email_to = config['pdf'].get('emailTo')
     if (email_to):
         await email_pdf(pdf, email_to)

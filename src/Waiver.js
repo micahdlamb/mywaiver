@@ -1,6 +1,7 @@
 // https://github.com/mui-org/material-ui/tree/master/docs/src/pages/getting-started/templates/checkout
 import React, { useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
+import _ from "lodash";
 import {
   makeStyles,
   Stepper,
@@ -71,7 +72,8 @@ export default function Waiver() {
   };
 
   const handleSubmit = async (values) => {
-    await server.submit_waiver(waiver, await populatePdf(config, values));
+    let keep = _.pickBy(values, (val) => !(val instanceof ArrayBuffer));
+    await server.submit_waiver(waiver, await populatePdf(config, values), keep);
     window.enqueueSnackbar("Thank you for your submission!", {
       variant: "success",
     });
