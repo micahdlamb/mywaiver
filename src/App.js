@@ -6,6 +6,7 @@ import Page from "./Page";
 import User from "./User";
 import Links from "./Links";
 import Waiver from "./Waiver";
+import Submissions from "./Submissions";
 import Configure from "./Configure";
 
 export default function App() {
@@ -24,7 +25,10 @@ export default function App() {
             <Route exact path="/:waiver">
               <Waiver />
             </Route>
-            <Route exact path="/configure/:waiver">
+            <Route exact path="/:waiver/submissions">
+              <Submissions />
+            </Route>
+            <Route exact path="/:waiver/configure">
               <Configure />
             </Route>
           </Switch>

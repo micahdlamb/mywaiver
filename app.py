@@ -1,5 +1,5 @@
 import os, json
-from quart import Quart, jsonify, request, session, send_from_directory
+from quart import Quart, jsonify, request, session, send_from_directory, make_response
 from aiofile import AIOFile
 import httpx; http = httpx.AsyncClient()
 import db
@@ -55,12 +55,26 @@ async def submit_waiver(waiver):
     pdf = files['pdf'].read()
     form = await request.form
     config = configs[waiver]
-    await db.save_waiver(config, pdf, form)
+    await db.save_waiver(config['id'], pdf, form)
     email_to = config['pdf'].get('emailTo')
     if (email_to):
         await email_pdf(pdf, email_to)
 
     return jsonify("great success")
+
+@app.route('/<waiver>/get_submissions', methods=['GET'])
+async def get_waivers(waiver):
+    config = configs[waiver]
+    return jsonify(await db.get_waivers(config['id']))
+
+@app.route('/<waiver>/<id>/download')
+async def download_pdf(waiver, id):
+    config = configs[waiver]
+    pdf = await db.get_pdf(config['id'], id)
+    resp = await make_response(pdf)
+    resp.headers.set('Content-Type', 'application/pdf')
+    resp.headers.set('Content-Disposition', 'inline', filename=f'{waiver}-{id}.pdf')
+    return resp
 
 async def email_pdf(pdf, to):
     import aiosmtplib

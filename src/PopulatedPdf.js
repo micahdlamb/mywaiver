@@ -23,7 +23,7 @@ function PopulatedPdf({ config, values, size }) {
 
     return <div style={{ height }}>
         {file &&
-            <Document file={file} onLoadSuccess={handleLoadSuccess}>
+            <Document file={file} onLoadSuccess={handleLoadSuccess} loading={<></>}>
                 {[...Array(numPages).keys()].map(pageNumber =>
                     <Page key={pageNumber} pageNumber={pageNumber + 1} width={size.width} />
                 )}

@@ -10,6 +10,7 @@ import {
   Link,
   IconButton,
 } from "@material-ui/core";
+import HistoryIcon from '@material-ui/icons/History';
 import SettingsIcon from "@material-ui/icons/Settings";
 
 import Page from "./Page";
@@ -21,6 +22,9 @@ const useStyles = makeStyles((theme) => ({
       flex: 1,
     },
   },
+  configure: {
+    right: '50px'
+  }
 }));
 
 export default function Links() {
@@ -37,10 +41,17 @@ export default function Links() {
             <Link component={RouterLink} to={`/${config}`}>
               {config}
             </Link>
-            <ListItemSecondaryAction>
-              <RouterLink to={`/configure/${config}`}>
+            <ListItemSecondaryAction  className={classes.configure}>
+              <RouterLink to={`/${config}/configure`}>
                 <IconButton edge="end" aria-label="configure">
                   <SettingsIcon />
+                </IconButton>
+              </RouterLink>
+            </ListItemSecondaryAction>
+            <ListItemSecondaryAction>
+              <RouterLink to={`/${config}/submissions`}>
+                <IconButton edge="end" aria-label="submissions" color='primary'>
+                  <HistoryIcon />
                 </IconButton>
               </RouterLink>
             </ListItemSecondaryAction>
