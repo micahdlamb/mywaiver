@@ -10,7 +10,7 @@ import {
   Link,
   IconButton,
 } from "@material-ui/core";
-import HistoryIcon from '@material-ui/icons/History';
+import HistoryIcon from "@material-ui/icons/History";
 import SettingsIcon from "@material-ui/icons/Settings";
 
 import Page from "./Page";
@@ -23,8 +23,8 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   configure: {
-    right: '50px'
-  }
+    right: "50px",
+  },
 }));
 
 export default function Links() {
@@ -41,7 +41,7 @@ export default function Links() {
             <Link component={RouterLink} to={`/${config}`}>
               {config}
             </Link>
-            <ListItemSecondaryAction  className={classes.configure}>
+            <ListItemSecondaryAction className={classes.configure}>
               <RouterLink to={`/${config}/configure`}>
                 <IconButton edge="end" aria-label="configure">
                   <SettingsIcon />
@@ -50,7 +50,7 @@ export default function Links() {
             </ListItemSecondaryAction>
             <ListItemSecondaryAction>
               <RouterLink to={`/${config}/submissions`}>
-                <IconButton edge="end" aria-label="submissions" color='primary'>
+                <IconButton edge="end" aria-label="submissions" color="primary">
                   <HistoryIcon />
                 </IconButton>
               </RouterLink>
@@ -58,7 +58,9 @@ export default function Links() {
           </ListItem>
         ))}
         {!configs.length && (
-          <Typography align="center" color="textSecondary">No waivers setup for {user}</Typography>
+          <Typography align="center" color="textSecondary">
+            No waivers setup for {user}
+          </Typography>
         )}
       </List>
     </Page>

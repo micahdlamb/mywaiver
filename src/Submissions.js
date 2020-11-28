@@ -1,14 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link as RouterLink } from "react-router-dom";
 import { formatDistanceToNow, fromUnixTime } from "date-fns";
-import {
-  Box,
-  Typography,
-  LinearProgress,
-  IconButton,
-} from "@material-ui/core";
+import { Box, Typography, LinearProgress, IconButton } from "@material-ui/core";
 import { DataGrid } from "@material-ui/data-grid";
-import OpenInNewIcon from '@material-ui/icons/OpenInNew';
+import OpenInNewIcon from "@material-ui/icons/OpenInNew";
 
 import Page from "./Page";
 
@@ -29,7 +24,9 @@ export default function Submissions() {
         submissions.length ? (
           <Data waiver={waiver} config={config} submissions={submissions} />
         ) : (
-          <Typography align="center" color="textSecondary">No submissions</Typography>
+          <Typography align="center" color="textSecondary">
+            No submissions
+          </Typography>
         )
       ) : (
         <Box m={1}>
@@ -42,8 +39,8 @@ export default function Submissions() {
 
 function Data({ waiver, config, submissions }) {
   let downloadLink = ({ value }) => (
-    <RouterLink to={`/${waiver}/${value}/download`} target='_blank'>
-      <IconButton color={'primary'}>
+    <RouterLink to={`/${waiver}/${value}/download`} target="_blank">
+      <IconButton color={"primary"}>
         <OpenInNewIcon />
       </IconButton>
     </RouterLink>

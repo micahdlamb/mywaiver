@@ -50,8 +50,8 @@ export function submit_waiver(waiver, pdfBytes, values) {
   }).then((resp) => resp.json());
 }
 
-export function get_submissions(waiver){
-  return get(`/${waiver}/get_submissions`)
+export function get_submissions(waiver) {
+  return get(`/${waiver}/get_submissions`);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

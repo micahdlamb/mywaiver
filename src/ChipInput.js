@@ -12,15 +12,15 @@ export function fieldToChipInput({
   const fieldError = getIn(errors, field.name);
   const showError = getIn(touched, field.name) && !!fieldError;
 
-  delete field.onChange
+  delete field.onChange;
 
-  function handleAdd(item){
-    setFieldValue(field.name, field.value.concat(item))
+  function handleAdd(item) {
+    setFieldValue(field.name, field.value.concat(item));
   }
 
-  function handleDelete(item, idx){
-    let newValue = field.value.filter((val, i) => idx !== i)
-    setFieldValue(field.name, newValue)
+  function handleDelete(item, idx) {
+    let newValue = field.value.filter((val, i) => idx !== i);
+    setFieldValue(field.name, newValue);
   }
 
   return {
