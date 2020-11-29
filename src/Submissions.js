@@ -1,8 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link as RouterLink } from "react-router-dom";
 import { formatDistanceToNow, fromUnixTime } from "date-fns";
-import { Box, Typography, LinearProgress, IconButton } from "@material-ui/core";
-import { DataGrid } from "@material-ui/data-grid";
+import {
+  Paper,
+  Box,
+  Typography,
+  LinearProgress,
+  IconButton,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TablePagination,
+  TableRow,
+} from "@material-ui/core";
 import OpenInNewIcon from "@material-ui/icons/OpenInNew";
 
 import Page from "./Page";
@@ -19,38 +31,53 @@ export default function Submissions() {
   }, [waiver]);
 
   return (
-    <Page title={waiver} contentWidth={1000}>
-      {submissions ? (
-        submissions.length ? (
-          <Data waiver={waiver} config={config} submissions={submissions} />
+    <>
+      <Page title={waiver} />
+      <Box p={2} mx={"auto"} maxWidth={1200}>
+        {submissions ? (
+          submissions.length ? (
+            <SubmissionsTable
+              waiver={waiver}
+              config={config}
+              submissions={submissions}
+            />
+          ) : (
+            <Typography align="center" color="textSecondary">
+              No submissions
+            </Typography>
+          )
         ) : (
-          <Typography align="center" color="textSecondary">
-            No submissions
-          </Typography>
-        )
-      ) : (
-        <Box m={1}>
           <LinearProgress />
-        </Box>
-      )}
-    </Page>
+        )}
+      </Box>
+    </>
   );
 }
 
-function Data({ waiver, config, submissions }) {
-  let downloadLink = ({ value }) => (
-    <RouterLink to={`/${waiver}/${value}/download`} target="_blank">
-      <IconButton color={"primary"}>
-        <OpenInNewIcon />
-      </IconButton>
-    </RouterLink>
-  );
+function SubmissionsTable({ waiver, config, submissions }) {
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(+event.target.value);
+    setPage(0);
+  };
+
   let cols = [
     {
       field: "id",
-      renderHeader: () => <>&nbsp;</>,
-      renderCell: downloadLink,
-      width: 65,
+      headerName: "",
+      renderCell: (value) => (
+        <RouterLink to={`/${waiver}/${value}/download`} target="_blank">
+          <IconButton color={"primary"}>
+            <OpenInNewIcon />
+          </IconButton>
+        </RouterLink>
+      ),
     },
   ];
 
@@ -60,22 +87,59 @@ function Data({ waiver, config, submissions }) {
         cols.push({
           field: name,
           headerName: name,
-          flex: 1,
         });
 
   cols.push({
     field: "create_date",
     headerName: "Date",
-    valueFormatter: ({ value }) =>
+    renderCell: (value) =>
       formatDistanceToNow(fromUnixTime(value), { addSuffix: true }),
-    width: 160,
   });
 
   let rows = submissions.map((sub) => ({ ...sub, ...sub.values }));
 
   return (
-    <div style={{ height: 400, width: "100%" }}>
-      <DataGrid columns={cols} rows={rows} disableSelectionOnClick />
-    </div>
+    <Paper>
+      <TableContainer>
+        <Table stickyHeader>
+          <TableHead>
+            <TableRow>
+              {cols.map((col) => (
+                <TableCell key={col.field} align="left">
+                  {col.headerName}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {rows
+              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              .map((row) => {
+                return (
+                  <TableRow hover key={row.id}>
+                    {cols.map((col) => {
+                      const value = row[col.field];
+                      return (
+                        <TableCell key={col.field} align={"left"}>
+                          {col.renderCell ? col.renderCell(value) : value}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                );
+              })}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <TablePagination
+        rowsPerPageOptions={[10, 25, 100]}
+        component="div"
+        count={rows.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onChangePage={handleChangePage}
+        onChangeRowsPerPage={handleChangeRowsPerPage}
+      />
+    </Paper>
   );
 }
