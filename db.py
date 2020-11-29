@@ -23,6 +23,8 @@ def acquire_cursor(func):
         raise e
     return wrap
 
+########################################################################################################################
+
 @acquire_cursor
 async def save_waiver(cur, template_id, bytes, fields):
     await cur.execute("""
@@ -46,7 +48,7 @@ async def get_waivers(cur, template_id):
         where waiver_template_id = ?
         order by create_date desc
     """, template_id)
-    waivers = [dict(id=row[0], create_date=row[1].timestamp()) for row in await cur.fetchall()]
+    waivers = [dict(id=row[0], create_date=to_timestamp(row[1])) for row in await cur.fetchall()]
     for waiver in waivers:
         await cur.execute("""
             select name, value
@@ -63,3 +65,9 @@ async def get_pdf(cur, template_id, id):
     """, template_id, id)
     row = await cur.fetchone()
     return row[0]
+
+########################################################################################################################
+from datetime import timezone
+
+def to_timestamp(datetime):
+    return datetime.replace(tzinfo=timezone.utc).timestamp()
