@@ -1,21 +1,26 @@
 import os
-import aioodbc
+import aioodbc, pyodbc
 
 async def connect():
-    global pool
-    pool = await aioodbc.create_pool(dsn=f"""
+    global conn
+    conn = await aioodbc.connect(dsn=f"""
         DRIVER={os.environ['db_driver']};
         SERVER=medfairprice.database.windows.net;
         DATABASE=medfairprice;
         UID={os.environ['db_uid']};
         PWD={os.environ['db_pwd']};
     """)
+    print('connected to db')
 
 def acquire_cursor(func):
     async def wrap(*args, **kwds):
-        async with pool.acquire() as conn:
-            async with conn.cursor() as cur:
-                return await func(cur, *args, **kwds)
+        for i in range(3):
+            try:
+                async with conn.cursor() as cur:
+                    return await func(cur, *args, **kwds)
+            except pyodbc.ProgrammingError as e:
+                await connect()
+        raise e
     return wrap
 
 @acquire_cursor
@@ -32,7 +37,6 @@ async def save_waiver(cur, template_id, bytes, fields):
             insert into waiver_field(waiver_id, name, value)
             values(?, ?, ?)
         """, waiver_id, name, value)
-    await cur.commit()
 
 @acquire_cursor
 async def get_waivers(cur, template_id):
