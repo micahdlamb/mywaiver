@@ -126,7 +126,7 @@ export default function Waiver() {
                         select={true}
                         SelectProps={{ multiple: field.multiple }}
                         name={name}
-                        label={name}
+                        label={field.label || name}
                         fullWidth
                       >
                         {field.options.map((option) => (
@@ -141,7 +141,7 @@ export default function Waiver() {
                         type={field.type}
                         multiline={field.multiline}
                         name={name}
-                        label={name}
+                        label={field.label || name}
                         fullWidth
                       />
                     )}

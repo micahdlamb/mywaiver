@@ -86,7 +86,7 @@ function SubmissionsTable({ waiver, config, submissions }) {
       if (field.type !== "signature")
         cols.push({
           field: name,
-          headerName: name,
+          headerName: field.label || name,
         });
 
   cols.push({

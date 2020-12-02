@@ -10,17 +10,20 @@
     "steps": {
         "Participants" : {
             "fields": {
-                "Guardian Name": {
+                "guardian": {
+                    "label": "Guardian Name",
                     "type": "text",
                     "required": true,
                     "position": {"left":79,"top":539,"width":110,"height":8}
                 },
-                "Email Address": {
+                "email": {
+                    "label": "Email Address",
                     "type": "email",
                     "required": true,
                     "position": {"left":457,"top":539,"width":114,"height":8}
                 },
-                "Children Names": {
+                "children": {
+                    "label": "Children Names",
                     "type": "text",
                     "required": true,
                     "multiple": true,
