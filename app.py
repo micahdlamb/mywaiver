@@ -62,6 +62,12 @@ async def submit_waiver(waiver):
 
     return jsonify("great success")
 
+@app.route('/<waiver>/<id>/record_use', methods=['POST'])
+async def record_use(waiver, id):
+    config = configs[waiver]
+    await db.record_use(config['id'], id)
+    return jsonify("great success")
+
 @app.route('/<waiver>/get_submissions', methods=['GET'])
 async def get_waivers(waiver):
     config = configs[waiver]

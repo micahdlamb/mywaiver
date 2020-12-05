@@ -1,6 +1,6 @@
 // https://github.com/mui-org/material-ui/tree/master/docs/src/pages/getting-started/templates/checkout
 import React, { useState, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useHistory } from "react-router-dom";
 import _ from "lodash";
 import {
   makeStyles,
@@ -20,6 +20,7 @@ import ChipInput from "./ChipInput";
 
 import Page from "./Page";
 import SignatureInput from "./SignatureInput";
+import ReuseSubmission from "./ReuseSubmission";
 import PopulatedPdf, { populatePdf } from "./PopulatedPdf";
 
 import * as server from "./server";
@@ -40,6 +41,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Waiver() {
   const classes = useStyles();
+  let history = useHistory();
   let { waiver } = useParams();
   let [activeStep, setActiveStep] = useState(0);
 
@@ -77,7 +79,7 @@ export default function Waiver() {
     window.enqueueSnackbar("Thank you for your submission!", {
       variant: "success",
     });
-    setTimeout(() => window.location.reload(), 5000);
+    setTimeout(() => history.go(0), 5000);
   };
 
   return (
@@ -94,9 +96,18 @@ export default function Waiver() {
         initialValues={initialValues}
         validate={(values) => {
           const errors = {};
-          for (let name of Object.keys(step.fields)) {
+          for (let [name, field] of Object.entries(step.fields)) {
             let value = values[name];
-            if (!value || value.length === 0) errors[name] = "required";
+            let empty = !value || value.length === 0;
+            if (empty && !field.required) continue;
+            if (empty) errors[name] = "required";
+            else if (
+              field.type === "email" &&
+              !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(value)
+            )
+              errors[name] = "invalid email";
+            else if (field.type === "tel" && !/^\d{10,11}$/.test(value))
+              errors[name] = "invalid phone";
           }
 
           return errors;
@@ -107,8 +118,23 @@ export default function Waiver() {
           setSubmitting(false);
         }}
       >
-        {({ submitForm, isSubmitting, values }) => (
+        {({ submitForm, isSubmitting, values, errors }) => (
           <Form>
+            {config.reuseSubmission &&
+              config.reuseSubmission
+                .split(" ")
+                .map(
+                  (field) =>
+                    values[field] &&
+                    !errors[field] && (
+                      <ReuseSubmission
+                        key={field}
+                        waiver={waiver}
+                        field={field}
+                        value={values[field]}
+                      />
+                    )
+                )}
             <Grid container spacing={3}>
               {step.showPdf && (
                 <Grid item xs={12}>

@@ -42,19 +42,25 @@ async def save_waiver(cur, template_id, bytes, fields):
         """, waiver_id, name, value)
 
 @acquire_cursor
+async def record_use(cur, template_id, id):
+    await cur.execute("""
+        update waiver set last_use_date = CURRENT_TIMESTAMP where waiver_template_id = ? and waiver_id = ?
+    """, template_id, id)
+
+@acquire_cursor
 async def get_waivers(cur, template_id, limit=150, **where):
     joins   = '\n'.join(f'''join waiver_field f{i} on f{i}.waiver_id = w.waiver_id and f{i}.name = ?'''
                         for i in range(len(where)))
     filters = '\n'.join(f'and f{i}.value = ?' for i in range(len(where)))
     await cur.execute(f"""
-        select distinct top (?) w.waiver_id, w.create_date
+        select distinct top (?) w.waiver_id, w.last_use_date
         from waiver w
         {joins}
         where w.waiver_template_id = ?
         {filters}
-        order by w.create_date desc
+        order by w.last_use_date desc
     """, limit, *where, template_id, *where.values())
-    waivers = [dict(id=row[0], create_date=to_timestamp(row[1])) for row in await cur.fetchall()]
+    waivers = [dict(id=row[0], last_use_date=to_timestamp(row[1])) for row in await cur.fetchall()]
     for waiver in waivers:
         await cur.execute("""
             select name, value

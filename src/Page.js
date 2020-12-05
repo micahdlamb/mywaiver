@@ -71,7 +71,7 @@ export default function Page({
 
   async function login() {
     await server.login();
-    window.location.reload();
+    history.go(0);
   }
 
   return (

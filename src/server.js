@@ -50,6 +50,12 @@ export function submit_waiver(waiver, pdfBytes, values) {
   }).then((resp) => resp.json());
 }
 
+export function record_use(waiver, id) {
+  return fetch(`/${waiver}/${id}/record_use`, {
+    method: "POST",
+  }).then((resp) => resp.json());
+}
+
 export function get_submissions(waiver, where) {
   return get(`/${waiver}/get_submissions?${new URLSearchParams(where)}`);
 }

@@ -90,8 +90,8 @@ function SubmissionsTable({ waiver, config, submissions }) {
         });
 
   cols.push({
-    field: "create_date",
-    headerName: "Date",
+    field: "last_use_date",
+    headerName: "Last Use",
     renderCell: (value) =>
       formatDistanceToNow(fromUnixTime(value), { addSuffix: true }),
   });

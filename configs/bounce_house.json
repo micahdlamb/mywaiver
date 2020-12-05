@@ -7,20 +7,22 @@
         "width": 612,
         "height": 792
     },
+    "reuseSubmission": "email",
+    "timestampFormat": "M/d/yy",
     "steps": {
         "Participants" : {
             "fields": {
-                "guardian": {
-                    "label": "Guardian Name",
-                    "type": "text",
-                    "required": true,
-                    "position": {"left":79,"top":539,"width":110,"height":8}
-                },
                 "email": {
                     "label": "Email Address",
                     "type": "email",
                     "required": true,
                     "position": {"left":457,"top":539,"width":114,"height":8}
+                },
+                "guardian": {
+                    "label": "Guardian Name",
+                    "type": "text",
+                    "required": true,
+                    "position": {"left":79,"top":539,"width":110,"height":8}
                 },
                 "children": {
                     "label": "Children Names",
@@ -42,6 +44,5 @@
                 }
             }
         }
-    },
-    "timestampFormat": "M/d/yy"
+    }
 }
