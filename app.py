@@ -65,7 +65,7 @@ async def submit_waiver(waiver):
 @app.route('/<waiver>/get_submissions', methods=['GET'])
 async def get_waivers(waiver):
     config = configs[waiver]
-    return jsonify(await db.get_waivers(config['id']))
+    return jsonify(await db.get_waivers(config['id'], **request.args))
 
 @app.route('/<waiver>/<id>/download')
 async def download_pdf(waiver, id):

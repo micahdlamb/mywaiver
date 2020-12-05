@@ -20,7 +20,8 @@ def acquire_cursor(func):
                     return await func(cur, *args, **kwds)
             except pyodbc.ProgrammingError as e:
                 await connect()
-        raise e
+                err = e
+        raise err
     return wrap
 
 ########################################################################################################################
@@ -41,13 +42,18 @@ async def save_waiver(cur, template_id, bytes, fields):
         """, waiver_id, name, value)
 
 @acquire_cursor
-async def get_waivers(cur, template_id):
-    await cur.execute("""
-        select waiver_id, create_date
-        from waiver
-        where waiver_template_id = ?
-        order by create_date desc
-    """, template_id)
+async def get_waivers(cur, template_id, limit=150, **where):
+    joins   = '\n'.join(f'''join waiver_field f{i} on f{i}.waiver_id = w.waiver_id and f{i}.name = ?'''
+                        for i in range(len(where)))
+    filters = '\n'.join(f'and f{i}.value = ?' for i in range(len(where)))
+    await cur.execute(f"""
+        select distinct top (?) w.waiver_id, w.create_date
+        from waiver w
+        {joins}
+        where w.waiver_template_id = ?
+        {filters}
+        order by w.create_date desc
+    """, limit, *where, template_id, *where.values())
     waivers = [dict(id=row[0], create_date=to_timestamp(row[1])) for row in await cur.fetchall()]
     for waiver in waivers:
         await cur.execute("""
