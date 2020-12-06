@@ -59,7 +59,7 @@ async def get_waivers(cur, template_id, limit=150, **where):
         where w.waiver_template_id = ?
         {filters}
         order by w.last_use_date desc
-    """, limit, *where, template_id, *where.values())
+    """, int(limit), *where, template_id, *where.values())
     waivers = [dict(id=row[0], last_use_date=to_timestamp(row[1])) for row in await cur.fetchall()]
     for waiver in waivers:
         await cur.execute("""
