@@ -1,6 +1,6 @@
 // https://github.com/mui-org/material-ui/tree/master/docs/src/pages/getting-started/templates/checkout
-import React, { useState, useMemo } from "react";
-import { useParams, useHistory } from "react-router-dom";
+import React, { useState } from "react";
+import { useParams } from "react-router-dom";
 import _ from "lodash";
 import {
   makeStyles,
@@ -41,45 +41,15 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Waiver() {
   const classes = useStyles();
-  let history = useHistory();
   let { waiver } = useParams();
   let [activeStep, setActiveStep] = useState(0);
 
   let config = server.get_config(waiver);
-  let initialValues = useMemo(
-    () =>
-      Object.fromEntries(
-        Object.values(config.steps)
-          .map((step) =>
-            Object.entries(step.fields).map(([name, field]) => [
-              name,
-              field.multiple ? [] : "",
-            ])
-          )
-          .flat()
-      ),
-    [config]
-  );
-
   let stepNames = Object.keys(config.steps);
   let step = Object.values(config.steps)[activeStep];
 
   const handleBack = () => {
     setActiveStep(activeStep - 1);
-  };
-
-  const handleNext = async (values) => {
-    if (activeStep === stepNames.length - 1) await handleSubmit(values);
-    else setActiveStep(activeStep + 1);
-  };
-
-  const handleSubmit = async (values) => {
-    let keep = _.pickBy(values, (val) => !(val instanceof ArrayBuffer));
-    await server.submit_waiver(waiver, await populatePdf(config, values), keep);
-    window.enqueueSnackbar("Thank you for your submission!", {
-      variant: "success",
-    });
-    setTimeout(() => history.go(0), 5000);
   };
 
   return (
@@ -93,7 +63,7 @@ export default function Waiver() {
       </Stepper>
 
       <Formik
-        initialValues={initialValues}
+        initialValues={config.initialValues}
         validate={(values) => {
           const errors = {};
           for (let [name, field] of Object.entries(step.fields)) {
@@ -112,14 +82,25 @@ export default function Waiver() {
 
           return errors;
         }}
-        onSubmit={async (values, { setTouched, setSubmitting }) => {
-          await handleNext(values);
-          setTouched({});
-          setSubmitting(false);
+        onSubmit={async (values, { setTouched, setSubmitting, resetForm }) => {
+          if (activeStep === stepNames.length - 1) {
+            let keep = _.pickBy(values, (val) => !(val instanceof ArrayBuffer));
+            let pdf = await populatePdf(config, values);
+            await server.submit_waiver(waiver, pdf, keep);
+            window.enqueueSnackbar("Thank you for your submission!", {
+              variant: "success",
+            });
+            resetForm();
+            setActiveStep(0);
+          } else {
+            setActiveStep(activeStep + 1);
+            setTouched({});
+            setSubmitting(false);
+          }
         }}
       >
-        {({ submitForm, isSubmitting, values, errors }) => (
-          <Form>
+        {({ submitForm, isSubmitting, values, errors, setValues }) => (
+          <Form autoComplete="off">
             {config.reuseSubmission &&
               config.reuseSubmission
                 .split(" ")
@@ -132,6 +113,7 @@ export default function Waiver() {
                         waiver={waiver}
                         field={field}
                         value={values[field]}
+                        setValues={setValues}
                       />
                     )
                 )}

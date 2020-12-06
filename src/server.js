@@ -34,7 +34,18 @@ export function get_configs() {
 }
 
 export function get_config(waiver) {
-  return getSuspense(`/${waiver}/get_config`);
+  let config = getSuspense(`/${waiver}/get_config`);
+  config.initialValues = Object.fromEntries(
+    Object.values(config.steps)
+      .map((step) =>
+        Object.entries(step.fields).map(([name, field]) => [
+          name,
+          field.multiple ? [] : "",
+        ])
+      )
+      .flat()
+  );
+  return config;
 }
 
 export function getBasePdf(url) {
@@ -56,8 +67,16 @@ export function record_use(waiver, id) {
   }).then((resp) => resp.json());
 }
 
-export function get_submissions(waiver, where) {
-  return get(`/${waiver}/get_submissions?${new URLSearchParams(where)}`);
+export async function get_submissions(waiver, where) {
+  let qs = new URLSearchParams(where);
+  let submissions = await get(`/${waiver}/get_submissions?${qs}`);
+  let config = get_config(waiver);
+  for (let sub of submissions)
+    for (let [name, value] of Object.entries(sub.values))
+      sub.values[name] = Array.isArray(config.initialValues[name])
+        ? value.split(",")
+        : value;
+  return submissions;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

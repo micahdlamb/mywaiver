@@ -87,6 +87,8 @@ function SubmissionsTable({ waiver, config, submissions }) {
         cols.push({
           field: name,
           headerName: field.label || name,
+          renderCell: (value) =>
+            Array.isArray(value) ? value.join(", ") : value,
         });
 
   cols.push({
@@ -117,14 +119,11 @@ function SubmissionsTable({ waiver, config, submissions }) {
               .map((row) => {
                 return (
                   <TableRow hover key={row.id}>
-                    {cols.map((col) => {
-                      const value = row[col.field];
-                      return (
-                        <TableCell key={col.field} align={"left"}>
-                          {col.renderCell ? col.renderCell(value) : value}
-                        </TableCell>
-                      );
-                    })}
+                    {cols.map((col) => (
+                      <TableCell key={col.field} align={"left"}>
+                        {col.renderCell(row[col.field])}
+                      </TableCell>
+                    ))}
                   </TableRow>
                 );
               })}

@@ -6,13 +6,15 @@ import { Document, Page } from "react-pdf";
 import {
   makeStyles,
   Dialog,
-  Button,
   AppBar,
+  Button,
+  IconButton,
   Slide,
   Toolbar,
   LinearProgress,
   Typography,
 } from "@material-ui/core";
+import CloseIcon from "@material-ui/icons/Close";
 
 import * as server from "./server";
 
@@ -31,8 +33,7 @@ const useStyles = makeStyles((theme) => ({
 
 let to;
 
-function ReuseSubmission({ waiver, field, value, size }) {
-  console.log("render", value);
+function ReuseSubmission({ waiver, field, value, setValues, size }) {
   const classes = useStyles();
   let history = useHistory();
   let [open, setOpen] = useState(false);
@@ -43,6 +44,7 @@ function ReuseSubmission({ waiver, field, value, size }) {
     to = setTimeout(async () => {
       let submissions = await server.get_submissions(waiver, {
         [field]: value,
+        limit: 1,
       });
       if (submissions.length) setOpen(submissions[0]);
     }, 100);
@@ -55,6 +57,11 @@ function ReuseSubmission({ waiver, field, value, size }) {
   }
 
   function close() {
+    setOpen(false);
+  }
+
+  function edit() {
+    setValues(open.values);
     setOpen(false);
   }
 
@@ -71,13 +78,16 @@ function ReuseSubmission({ waiver, field, value, size }) {
     <Dialog open={!!open} TransitionComponent={Transition} fullScreen>
       <AppBar className={classes.appBar}>
         <Toolbar>
+          <IconButton color="inherit" onClick={close}>
+            <CloseIcon />
+          </IconButton>
           <Typography variant="h6" className={classes.title}>
             Is this Correct?
           </Typography>
-          <Button autoFocus color="inherit" onClick={close}>
+          <Button color="inherit" onClick={edit}>
             Edit
           </Button>
-          <Button autoFocus color="inherit" onClick={accept}>
+          <Button color="inherit" onClick={accept}>
             Accept
           </Button>
         </Toolbar>
