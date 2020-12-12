@@ -73,7 +73,7 @@ async def _getTemplateFromRequest():
     form = await request.form
 
     return dict(
-        owner = session['user'],
+        owner = session.get('user', ''),
         name = form['name'],
         pdf = files['pdf'].read() if 'pdf' in files else None,
         config = form['config']
