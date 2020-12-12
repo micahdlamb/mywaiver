@@ -65,6 +65,7 @@ export default function Page({
   showUser,
   showCopyright,
   children,
+  buttons,
 }) {
   const classes = useStyles({ contentWidth });
   let history = useHistory();
@@ -87,6 +88,7 @@ export default function Page({
           >
             {title}
           </Typography>
+          {buttons}
           {showUser &&
             (server.get_user() ? (
               <IconButton

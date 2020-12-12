@@ -17,6 +17,7 @@ import {
 import CloseIcon from "@material-ui/icons/Close";
 
 import * as server from "./server";
+import * as snackbar from "./snackbar";
 
 const useStyles = makeStyles((theme) => ({
   appBar: {
@@ -33,7 +34,7 @@ const useStyles = makeStyles((theme) => ({
 
 let to;
 
-function ReuseSubmission({ waiver, field, value, setValues, size }) {
+function ReuseSubmission({ template, field, value, setValues, size }) {
   const classes = useStyles();
   let history = useHistory();
   let [open, setOpen] = useState(false);
@@ -42,13 +43,13 @@ function ReuseSubmission({ waiver, field, value, setValues, size }) {
   useEffect(() => {
     clearTimeout(to);
     to = setTimeout(async () => {
-      let submissions = await server.get_submissions(waiver, {
+      let submissions = await server.get_submissions(template, {
         [field]: value,
         limit: 1,
       });
       if (submissions.length) setOpen(submissions[0]);
     }, 100);
-  }, [waiver, field, value]);
+  }, [template, field, value]);
 
   if (open === undefined) return null;
 
@@ -66,10 +67,8 @@ function ReuseSubmission({ waiver, field, value, setValues, size }) {
   }
 
   async function accept() {
-    await server.record_use(waiver, open.id);
-    window.enqueueSnackbar("Thank you for coming back!", {
-      variant: "success",
-    });
+    await server.record_use(template, open.id);
+    snackbar.success("Thank you for coming back!");
     setOpen(false);
     setTimeout(() => history.go(0), 5000);
   }
@@ -94,7 +93,7 @@ function ReuseSubmission({ waiver, field, value, setValues, size }) {
       </AppBar>
       {open && (
         <Document
-          file={`/${waiver}/${open.id}/download`}
+          file={server.get_submission_pdf_url(template, open.id)}
           onLoadSuccess={handleLoadSuccess}
           loading={<LinearProgress />}
           className={classes.pdf}

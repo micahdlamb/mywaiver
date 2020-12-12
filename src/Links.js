@@ -10,6 +10,7 @@ import {
   Link,
   IconButton,
 } from "@material-ui/core";
+import AddIcon from "@material-ui/icons/Add";
 import HistoryIcon from "@material-ui/icons/History";
 import SettingsIcon from "@material-ui/icons/Settings";
 
@@ -29,27 +30,37 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Links() {
   let classes = useStyles();
-  let configs = server.get_configs();
+  let templates = server.get_template_names();
   let user = server.get_user();
 
   return (
     <Page title="Choose Waiver" contentWidth={400} showUser showCopyright>
-      {!user && <Typography variant="h3">Demo</Typography>}
+      {user ? (
+        <Typography align="right">
+          <RouterLink to={`/configure/new`}>
+            <IconButton edge="end" aria-label="submissions" color="primary">
+              <AddIcon />
+            </IconButton>
+          </RouterLink>
+        </Typography>
+      ) : (
+        <Typography variant="h3">Demo</Typography>
+      )}
       <List component="nav" className={classes.root}>
-        {configs.map((config) => (
-          <ListItem button key={config}>
-            <Link component={RouterLink} to={`/${config}`}>
-              {config}
+        {templates.map((template) => (
+          <ListItem button key={template}>
+            <Link component={RouterLink} to={`/${template}`}>
+              {template}
             </Link>
             <ListItemSecondaryAction className={classes.configure}>
-              <RouterLink to={`/${config}/configure`}>
+              <RouterLink to={`/${template}/configure`}>
                 <IconButton edge="end" aria-label="configure">
                   <SettingsIcon />
                 </IconButton>
               </RouterLink>
             </ListItemSecondaryAction>
             <ListItemSecondaryAction>
-              <RouterLink to={`/${config}/submissions`}>
+              <RouterLink to={`/${template}/submissions`}>
                 <IconButton edge="end" aria-label="submissions" color="primary">
                   <HistoryIcon />
                 </IconButton>
@@ -57,7 +68,7 @@ export default function Links() {
             </ListItemSecondaryAction>
           </ListItem>
         ))}
-        {!configs.length && (
+        {!templates.length && (
           <Typography align="center" color="textSecondary">
             No waivers setup for {user}
           </Typography>

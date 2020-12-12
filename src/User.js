@@ -12,6 +12,7 @@ import MeetingRoomIcon from "@material-ui/icons/MeetingRoom";
 
 import Page from "./Page";
 import * as server from "./server";
+import * as snackbar from "./snackbar";
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -24,7 +25,7 @@ export default function Links() {
 
   async function logout() {
     await server.logout();
-    window.enqueueSnackbar("Logged out", { variant: "success" });
+    snackbar.success("Logged out");
     history.push("/");
   }
 

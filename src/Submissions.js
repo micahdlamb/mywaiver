@@ -22,22 +22,22 @@ import Page from "./Page";
 import * as server from "./server";
 
 export default function Submissions() {
-  let { waiver } = useParams();
+  let { template } = useParams();
   let [submissions, setSubmissions] = useState(null);
-  let config = server.get_config(waiver);
+  let config = server.get_template_config(template);
 
   useEffect(() => {
-    server.get_submissions(waiver).then(setSubmissions);
-  }, [waiver]);
+    server.get_submissions(template).then(setSubmissions);
+  }, [template]);
 
   return (
     <>
-      <Page title={waiver} />
+      <Page title={template} />
       <Box p={2} mx={"auto"} maxWidth={1200}>
         {submissions ? (
           submissions.length ? (
             <SubmissionsTable
-              waiver={waiver}
+              template={template}
               config={config}
               submissions={submissions}
             />
@@ -54,7 +54,7 @@ export default function Submissions() {
   );
 }
 
-function SubmissionsTable({ waiver, config, submissions }) {
+function SubmissionsTable({ template, config, submissions }) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
@@ -72,7 +72,10 @@ function SubmissionsTable({ waiver, config, submissions }) {
       field: "id",
       headerName: "",
       renderCell: (value) => (
-        <RouterLink to={`/${waiver}/${value}/download`} target="_blank">
+        <RouterLink
+          to={server.get_submission_pdf_url(template, value)}
+          target="_blank"
+        >
           <IconButton color={"primary"}>
             <OpenInNewIcon />
           </IconButton>

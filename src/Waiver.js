@@ -24,6 +24,7 @@ import ReuseSubmission from "./ReuseSubmission";
 import PopulatedPdf, { populatePdf } from "./PopulatedPdf";
 
 import * as server from "./server";
+import * as snackbar from "./snackbar";
 
 const useStyles = makeStyles((theme) => ({
   stepper: {
@@ -41,10 +42,10 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Waiver() {
   const classes = useStyles();
-  let { waiver } = useParams();
+  let { template } = useParams();
   let [activeStep, setActiveStep] = useState(0);
 
-  let config = server.get_config(waiver);
+  let config = server.get_template_config(template);
   let stepNames = Object.keys(config.steps);
   let step = Object.values(config.steps)[activeStep];
 
@@ -53,7 +54,7 @@ export default function Waiver() {
   };
 
   return (
-    <Page title={config.name} contentWidth={600}>
+    <Page title={config.title} contentWidth={600}>
       <Stepper activeStep={activeStep} className={classes.stepper}>
         {stepNames.map((name) => (
           <Step key={name}>
@@ -85,11 +86,9 @@ export default function Waiver() {
         onSubmit={async (values, { setTouched, setSubmitting, resetForm }) => {
           if (activeStep === stepNames.length - 1) {
             let keep = _.pickBy(values, (val) => !(val instanceof ArrayBuffer));
-            let pdf = await populatePdf(config, values);
-            await server.submit_waiver(waiver, pdf, keep);
-            window.enqueueSnackbar("Thank you for your submission!", {
-              variant: "success",
-            });
+            let pdf = await populatePdf(template, config, values);
+            await server.submit(template, pdf, keep);
+            snackbar.success("Thank you for your submission!");
             resetForm();
             setActiveStep(0);
           } else {
@@ -110,7 +109,7 @@ export default function Waiver() {
                     !errors[field] && (
                       <ReuseSubmission
                         key={field}
-                        waiver={waiver}
+                        template={template}
                         field={field}
                         value={values[field]}
                         setValues={setValues}
@@ -120,7 +119,11 @@ export default function Waiver() {
             <Grid container spacing={3}>
               {step.showPdf && (
                 <Grid item xs={12}>
-                  <PopulatedPdf config={config} values={values} />
+                  <PopulatedPdf
+                    template={template}
+                    config={config}
+                    values={values}
+                  />
                 </Grid>
               )}
               {Object.entries(step.fields).map(([name, field]) => (

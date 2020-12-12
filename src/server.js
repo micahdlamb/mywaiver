@@ -29,12 +29,18 @@ export function get_user() {
   return getSuspense("/get_user");
 }
 
-export function get_configs() {
-  return getSuspense("/get_configs");
+// ------------------------------------------------------------------------------------------------
+
+export function get_template_names() {
+  return getSuspense("/get_template_names");
 }
 
-export function get_config(waiver) {
-  let config = getSuspense(`/${waiver}/get_config`);
+export function get_template_pdf(template) {
+  return getCached(`/${template}/get_template_pdf`, asArrayBuffer);
+}
+
+export function get_template_config(template) {
+  let config = getSuspense(`/${template}/get_template_config`);
   config.initialValues = Object.fromEntries(
     Object.values(config.steps)
       .map((step) =>
@@ -48,35 +54,59 @@ export function get_config(waiver) {
   return config;
 }
 
-export function getBasePdf(url) {
-  return getCached(url, asArrayBuffer);
+export function get_template(template) {
+  return getSuspense(`/${template}/get_template`);
 }
 
-export function submit_waiver(waiver, pdfBytes, values) {
+export async function create_template(name, pdf, config) {
+  let formData = toFormData({ name, pdf, config: JSON.stringify(config) });
+  await fetch("/create_template", {
+    method: "POST",
+    body: formData,
+  });
+  _cache = {};
+}
+
+export async function update_template(template, name, pdf, config) {
+  let formData = toFormData({ name, pdf, config: JSON.stringify(config) });
+  await fetch(`/${template}/update_template`, {
+    method: "POST",
+    body: formData,
+  }).then((resp) => resp.json());
+  _cache = {};
+}
+
+// ------------------------------------------------------------------------------------------------
+
+export function submit(template, pdfBytes, values) {
   let pdf = new Blob([pdfBytes], { type: "application/pdf" });
   let formData = toFormData({ ...values, pdf });
-  return fetch(`/${waiver}/submit`, {
+  return fetch(`/${template}/submit`, {
     method: "POST",
     body: formData,
   }).then((resp) => resp.json());
 }
 
-export function record_use(waiver, id) {
-  return fetch(`/${waiver}/${id}/record_use`, {
-    method: "POST",
-  }).then((resp) => resp.json());
-}
-
-export async function get_submissions(waiver, where) {
+export async function get_submissions(template, where) {
   let qs = new URLSearchParams(where);
-  let submissions = await get(`/${waiver}/get_submissions?${qs}`);
-  let config = get_config(waiver);
+  let submissions = await get(`/${template}/get_submissions?${qs}`);
+  let config = get_template_config(template);
   for (let sub of submissions)
     for (let [name, value] of Object.entries(sub.values))
       sub.values[name] = Array.isArray(config.initialValues[name])
         ? value.split(",")
         : value;
   return submissions;
+}
+
+export function get_submission_pdf_url(template, id) {
+  return `/${template}/${id}/get_submission_pdf`;
+}
+
+export function record_use(template, id) {
+  return fetch(`/${template}/${id}/record_use`, {
+    method: "POST",
+  }).then((resp) => resp.json());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

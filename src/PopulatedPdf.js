@@ -7,19 +7,20 @@ import { format } from "date-fns";
 import { pdfjs } from "react-pdf";
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
-function PopulatedPdf({ config, values, size }) {
+function PopulatedPdf({ template, config, values, size }) {
   let [file, setFile] = useState(null);
   let [numPages, setNumPages] = useState(0);
 
-  let height = (config.pdf.height * size.width) / config.pdf.width;
+  let { pdfWidth, pdfHeight } = config;
+  let height = (pdfHeight * size.width) / pdfWidth;
 
   function handleLoadSuccess({ numPages }) {
     setNumPages(numPages);
   }
 
   useEffect(() => {
-    populatePdf(config, values).then((data) => setFile({ data }));
-  }, [config, values]);
+    populatePdf(template, config, values).then((data) => setFile({ data }));
+  }, [template, config, values]);
 
   return (
     <div style={{ height }}>
@@ -40,11 +41,11 @@ function PopulatedPdf({ config, values, size }) {
 
 export default withSize()(PopulatedPdf);
 
-export async function populatePdf(config, values) {
+export async function populatePdf(template, config, values) {
   let { PDFDocument, StandardFonts } = await import("pdf-lib");
 
-  let basePdf = await server.getBasePdf(config.pdf.url);
-  const pdf = await PDFDocument.load(basePdf);
+  let templatePdf = await server.get_template_pdf(template);
+  const pdf = await PDFDocument.load(templatePdf);
   const pages = pdf.getPages();
   const page = pages[0];
   const { height } = page.getSize();

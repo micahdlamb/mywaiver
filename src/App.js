@@ -1,6 +1,7 @@
 import React, { Suspense } from "react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
-import { SnackbarProvider, useSnackbar } from "notistack";
+
+import * as snackbar from "./snackbar";
 
 import Page from "./Page";
 import User from "./User";
@@ -11,8 +12,7 @@ import Configure from "./Configure";
 
 export default function App() {
   return (
-    <SnackbarProvider>
-      <MakeEnqueueSnackbarGlobal />
+    <snackbar.Provider>
       <Suspense fallback={<Page />}>
         <Router>
           <Switch>
@@ -22,24 +22,18 @@ export default function App() {
             <Route exact path="/user">
               <User />
             </Route>
-            <Route exact path="/:waiver">
+            <Route exact path="/:template">
               <Waiver />
             </Route>
-            <Route exact path="/:waiver/submissions">
+            <Route exact path="/:template/submissions">
               <Submissions />
             </Route>
-            <Route exact path="/:waiver/configure">
+            <Route exact path={["/:template/configure", "/configure/new"]}>
               <Configure />
             </Route>
           </Switch>
         </Router>
       </Suspense>
-    </SnackbarProvider>
+    </snackbar.Provider>
   );
-}
-
-function MakeEnqueueSnackbarGlobal() {
-  const { enqueueSnackbar } = useSnackbar();
-  window.enqueueSnackbar = enqueueSnackbar;
-  return null;
 }

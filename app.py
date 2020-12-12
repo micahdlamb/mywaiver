@@ -1,6 +1,5 @@
-import os, json
-from quart import Quart, jsonify, request, session, send_from_directory, make_response
-from aiofile import AIOFile
+import os
+from quart import Quart, jsonify, request, session, send_from_directory, make_response, url_for
 import httpx; http = httpx.AsyncClient()
 import db
 
@@ -9,9 +8,8 @@ root = Path(__file__).parent
 
 app = Quart(__name__, static_folder='build')
 app.secret_key = 'sup3rsp1cy'
+app.config['JSON_SORT_KEYS'] = False
 app.before_serving(db.connect)
-
-configs = {path.stem : json.loads(path.read_text()) for path in (root / 'configs').glob('*.json')}
 
 # API ##################################################################################################################
 
@@ -33,54 +31,88 @@ def logout():
 def get_user():
     return jsonify(session.get("user"))
 
-@app.route('/get_configs', methods=['GET'])
-async def get_configs():
-    return jsonify([waiver for waiver, config in configs.items() if config.get('owner') == session.get('user')])
+#-----------------------------------------------------------------------------------------------------------------------
 
-@app.route('/<waiver>/get_config', methods=['GET'])
-async def get_config(waiver):
-    return await send_from_directory(root / 'configs', f"{waiver}.json", cache_timeout=-1)
+@app.route('/get_template_names', methods=['GET'])
+async def get_template_names():
+    return jsonify(await db.get_template_names(session.get('user', '')))
 
-@app.route('/<waiver>/save_config', methods=['POST'])
-async def save_config(waiver):
-    json = await request.get_data()
-    async with AIOFile(root / 'configs' / f"{waiver}.json", 'w') as f:
-        await f.write(json)
+@app.route('/<template>/get_template_pdf', methods=['GET'])
+async def get_template_pdf(template):
+    tpl = await db.get_template(template)
+    resp = await make_response(tpl['pdf'])
+    resp.headers.set('Content-Type', 'application/pdf')
+    resp.headers.set('Content-Disposition', 'inline', filename=f'{template}.pdf')
+    return resp
 
+@app.route('/<template>/get_template_config', methods=['GET'])
+async def get_template_config(template):
+    tpl = await db.get_template(template)
+    return jsonify(tpl['config'])
+
+@app.route('/<template>/get_template')
+async def get_template(template):
+    tpl = await db.get_template(template)
+    copy = tpl.copy()
+    copy['name'] = template
+    copy['pdf'] = url_for('get_template_pdf', template=template)
+    return jsonify(copy)
+
+@app.route('/create_template', methods=['POST'])
+async def create_template():
+    await db.create_template(await _getTemplateFromRequest())
     return jsonify("great success")
 
-@app.route('/<waiver>/submit', methods=['POST'])
-async def submit_waiver(waiver):
+@app.route('/<template>/update_template', methods=['POST'])
+async def update_template(template):
+    await db.update_template(template, await _getTemplateFromRequest())
+    return jsonify("great success")
+
+async def _getTemplateFromRequest():
+    files = await request.files
+    form = await request.form
+
+    return dict(
+        owner = session['user'],
+        name = form['name'],
+        pdf = files['pdf'].read() if 'pdf' in files else None,
+        config = form['config']
+    )
+
+#-----------------------------------------------------------------------------------------------------------------------
+
+@app.route('/<template>/submit', methods=['POST'])
+async def submit(template):
     files = await request.files
     pdf = files['pdf'].read()
     form = await request.form
-    config = configs[waiver]
-    await db.save_waiver(config['id'], pdf, form)
-    email_to = config['pdf'].get('emailTo')
+    await db.save_waiver(template, pdf, form)
+
+    tpl = await db.get_template(template)
+    email_to = tpl['config'].get('emailTo')
     if (email_to):
         await email_pdf(pdf, email_to)
 
     return jsonify("great success")
 
-@app.route('/<waiver>/<id>/record_use', methods=['POST'])
-async def record_use(waiver, id):
-    config = configs[waiver]
-    await db.record_use(config['id'], id)
-    return jsonify("great success")
+@app.route('/<template>/get_submissions', methods=['GET'])
+async def get_submissions(template):
+    return jsonify(await db.get_waivers(template, **request.args))
 
-@app.route('/<waiver>/get_submissions', methods=['GET'])
-async def get_waivers(waiver):
-    config = configs[waiver]
-    return jsonify(await db.get_waivers(config['id'], **request.args))
-
-@app.route('/<waiver>/<id>/download')
-async def download_pdf(waiver, id):
-    config = configs[waiver]
-    pdf = await db.get_pdf(config['id'], id)
+@app.route('/<template>/<id>/get_submission_pdf')
+async def get_submission_pdf(template, id):
+    pdf = await db.get_submission_pdf(template, id)
     resp = await make_response(pdf)
     resp.headers.set('Content-Type', 'application/pdf')
-    resp.headers.set('Content-Disposition', 'inline', filename=f'{waiver}-{id}.pdf')
+    resp.headers.set('Content-Disposition', 'inline', filename=f'{template}-{id}.pdf')
     return resp
+
+@app.route('/<template>/<id>/record_use', methods=['POST'])
+async def record_use(template, id):
+    await db.record_use(template, id)
+    return jsonify("great success")
+
+#-----------------------------------------------------------------------------------------------------------------------
 
 async def email_pdf(pdf, to):
     import aiosmtplib

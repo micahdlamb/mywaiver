@@ -1,5 +1,5 @@
-import os
-import aioodbc, pyodbc
+import os, json
+import aioodbc
 
 async def connect():
     global conn
@@ -18,7 +18,10 @@ def acquire_cursor(func):
             try:
                 async with conn.cursor() as cur:
                     return await func(cur, *args, **kwds)
-            except pyodbc.ProgrammingError as e:
+            except Exception as e:
+                # connect running twice in parallel?
+                # pyodbc.Error: ('HY010', '[HY010] [Microsoft][ODBC Driver 13 for SQL Server]Function sequence error (0) (SQLFetch)')
+                # AttributeError: 'NoneType' object has no attribute 'cursor'
                 await connect()
                 err = e
         raise err
@@ -27,11 +30,46 @@ def acquire_cursor(func):
 ########################################################################################################################
 
 @acquire_cursor
-async def save_waiver(cur, template_id, bytes, fields):
+async def get_template_names(cur, owner):
+    await cur.execute(f"select name from waiver_template where owner=? order by name", owner)
+    rows = await cur.fetchall()
+    return [row[0] for row in rows]
+
+templates = {}
+
+async def get_template(name):
+    try:
+        return templates[name]
+    except:
+        tpl = templates[name] = await _get_template(name)
+        return tpl
+
+@acquire_cursor
+async def _get_template(cur, name):
+    await cur.execute("select id, pdf, config from waiver_template where name = ?", name)
+    row = await cur.fetchone()
+    return dict(id=row[0], pdf=row[1], config=json.loads(row[2]))
+
+@acquire_cursor
+async def create_template(cur, tpl):
+    await cur.execute("insert into waiver_template(name, owner, pdf, config) values(?, ?, ?, ?)",
+                      tpl['name'], tpl['owner'], tpl["pdf"], tpl["config"])
+
+@acquire_cursor
+async def update_template(cur, name, tpl):
+    pdfAssign, pdfParam = ("pdf=?,", [tpl["pdf"]]) if tpl["pdf"] else ("", ())
+    await cur.execute(f"update waiver_template set name=?, {pdfAssign} config=? where name=? and owner=?",
+                      tpl["name"], *pdfParam, tpl["config"], name, tpl["owner"])
+    templates.pop(name, None)
+
+########################################################################################################################
+
+@acquire_cursor
+async def save_waiver(cur, template, bytes, fields):
     await cur.execute("""
-        insert into waiver(waiver_template_id, pdf_bytes)
-        values(?, ?)
-    """, template_id, bytes)
+        insert into waiver(template_id, pdf)
+        values((select id from waiver_template where name=?), ?)
+    """, template, bytes)
     await cur.execute("SELECT @@IDENTITY")
     row = await cur.fetchone()
     waiver_id = row[0]
@@ -42,24 +80,26 @@ async def save_waiver(cur, template_id, bytes, fields):
         """, waiver_id, name, value)
 
 @acquire_cursor
-async def record_use(cur, template_id, id):
+async def record_use(cur, template, id):
     await cur.execute("""
-        update waiver set last_use_date = CURRENT_TIMESTAMP where waiver_template_id = ? and waiver_id = ?
-    """, template_id, id)
+        update waiver set last_use_date = CURRENT_TIMESTAMP
+        where template_id = (select id from waiver_template where name = ?)
+          and id = ?
+    """, template, id)
 
 @acquire_cursor
-async def get_waivers(cur, template_id, limit=150, **where):
-    joins   = '\n'.join(f'''join waiver_field f{i} on f{i}.waiver_id = w.waiver_id and f{i}.name = ?'''
+async def get_waivers(cur, template, limit=150, **where):
+    joins   = '\n'.join(f'''join waiver_field f{i} on f{i}.waiver_id = w.id and f{i}.name = ?'''
                         for i in range(len(where)))
     filters = '\n'.join(f'and f{i}.value = ?' for i in range(len(where)))
     await cur.execute(f"""
-        select distinct top (?) w.waiver_id, w.last_use_date
+        select distinct top (?) w.id, w.last_use_date
         from waiver w
         {joins}
-        where w.waiver_template_id = ?
+        where w.template_id = (select id from waiver_template where name = ?)
         {filters}
         order by w.last_use_date desc
-    """, int(limit), *where, template_id, *where.values())
+    """, int(limit), *where, template, *where.values())
     waivers = [dict(id=row[0], last_use_date=to_timestamp(row[1])) for row in await cur.fetchall()]
     for waiver in waivers:
         await cur.execute("""
@@ -71,10 +111,12 @@ async def get_waivers(cur, template_id, limit=150, **where):
     return waivers
 
 @acquire_cursor
-async def get_pdf(cur, template_id, id):
+async def get_submission_pdf(cur, template, id):
     await cur.execute("""
-        select pdf_bytes from waiver where waiver_template_id = ? and waiver_id = ?
-    """, template_id, id)
+        select pdf from waiver
+        where template_id = (select id from waiver_template where name = ?)
+          and id = ?
+    """, template, id)
     row = await cur.fetchone()
     return row[0]
 
