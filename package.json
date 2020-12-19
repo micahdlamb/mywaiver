@@ -19,6 +19,7 @@
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
     "react-pdf": "^5.0.0",
+    "react-rnd": "^10.2.4",
     "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.3",
     "react-signature-canvas": "^1.0.3",
