@@ -100,22 +100,19 @@ export default function Waiver() {
       >
         {({ submitForm, isSubmitting, values, errors, setValues }) => (
           <Form autoComplete="off">
-            {config.reuseSubmission &&
-              config.reuseSubmission
-                .split(" ")
-                .map(
-                  (field) =>
-                    values[field] &&
-                    !errors[field] && (
-                      <ReuseSubmission
-                        key={field}
-                        template={template}
-                        field={field}
-                        value={values[field]}
-                        setValues={setValues}
-                      />
-                    )
-                )}
+            {config.reuseFields.map(
+              (name) =>
+                values[name] &&
+                !errors[name] && (
+                  <ReuseSubmission
+                    key={name}
+                    template={template}
+                    field={name}
+                    value={values[name]}
+                    setValues={setValues}
+                  />
+                )
+            )}
             <Grid container spacing={3}>
               {step.showPdf && (
                 <Grid item xs={12}>
@@ -129,7 +126,7 @@ export default function Waiver() {
               {Object.entries(step.fields).map(([name, field]) => (
                 <Grid item xs={12} key={name}>
                   {(field.type === "signature" && (
-                    <SignatureInput name={name} label={name} />
+                    <SignatureInput name={name} label={field.label || name} />
                   )) ||
                     (field.type === "select" && (
                       <Field

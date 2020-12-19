@@ -12,13 +12,19 @@ import {
   Button,
   TextField,
   MenuItem,
+  InputAdornment,
 } from "@material-ui/core";
 import AddIcon from "@material-ui/icons/Add";
 import DeleteIcon from "@material-ui/icons/Delete";
+import VpnKeyIcon from "@material-ui/icons/VpnKey";
 import * as pdf from "react-pdf";
 
 import { Formik, Field, FieldArray, useFormikContext, getIn } from "formik";
-import { TextField as TextField_, CheckboxWithLabel } from "formik-material-ui";
+import {
+  TextField as TextField_,
+  CheckboxWithLabel,
+  Checkbox,
+} from "formik-material-ui";
 import ChipInput from "./ChipInput";
 
 import { Rnd } from "react-rnd";
@@ -90,6 +96,18 @@ export default function Configure() {
         return errors;
       }}
       onSubmit={async (cfg, { setTouched, setSubmitting, resetForm }) => {
+        // Clear out invalid values
+        let inPdf = (pos) => pos && pos.left + pos.width > 0;
+        for (let step of cfg.steps)
+          for (let field of step.fields) {
+            // null out positions outside the pdf so PopulatedPdf ignores them
+            if (!inPdf(field.position)) field.position = undefined;
+            if (!inPdf(field.timestampPosition))
+              field.timestampPosition = undefined;
+
+            if (!reuseTypes.includes(field.type)) field.reuse = undefined;
+          }
+
         cfg = arrayToObject(cfg);
 
         if (pdf.dim) {
@@ -109,12 +127,12 @@ export default function Configure() {
         history.go(-1);
       }}
     >
-      {({ submitForm, isSubmitting, values, errors }) => (
+      {({ submitForm, values }) => (
         <>
           <Page
             title={`Configure ${template || " New Waiver"}`}
             buttons={
-              <Button color="inherit" onClick={submitForm}>
+              <Button color="inherit" onClick={submitForm} disabled={!pdf}>
                 Save
               </Button>
             }
@@ -158,14 +176,6 @@ export default function Configure() {
                         component={TextField_}
                         name="title"
                         label="Title"
-                        fullWidth
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <Field
-                        component={TextField_}
-                        name="reuseSubmission"
-                        label="Reuse Submission"
                         fullWidth
                       />
                     </Grid>
@@ -234,7 +244,7 @@ let Step = ({ step, path, add, remove }) => (
   <Card variant="outlined" square>
     <CardContent>
       <Grid container spacing={2}>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={8}>
           <Field
             component={TextField_}
             name={`${path}.name`}
@@ -242,7 +252,7 @@ let Step = ({ step, path, add, remove }) => (
             fullWidth
           />
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={4}>
           <Field
             component={CheckboxWithLabel}
             type="checkbox"
@@ -308,8 +318,23 @@ let ConfigField = ({ field, path, add, remove }) => (
             name={`${path}.name`}
             label="Name"
             fullWidth
+            InputProps={
+              (reuseTypes.includes(field.type) || null) && {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <Field
+                      component={Checkbox}
+                      type="checkbox"
+                      name={`${path}.reuse`}
+                      checkedIcon={<VpnKeyIcon />}
+                    />
+                  </InputAdornment>
+                ),
+              }
+            }
           />
         </Grid>
+        <Grid item xs={2}></Grid>
         <Grid item xs={12}>
           <Field
             component={TextField_}
@@ -326,25 +351,24 @@ let ConfigField = ({ field, path, add, remove }) => (
             label="Type"
             fullWidth
           >
-            <MenuItem value="signature">Signature</MenuItem>
-            <MenuItem value="select">Select</MenuItem>
-            <MenuItem value="text">Text</MenuItem>
-            <MenuItem value="email">Email</MenuItem>
-            <MenuItem value="tel">Phone #</MenuItem>
-            <MenuItem value="number">Number</MenuItem>
+            {Object.entries(types).map(([value, label]) => (
+              <MenuItem value={value} key={value}>
+                {label}
+              </MenuItem>
+            ))}
           </Field>
         </Grid>
         {field.type === "select" && (
           <Grid item xs={12}>
             <Field
               component={ChipInput}
-              name={"options"}
+              name={`${path}.options`}
               label={"Options"}
               fullWidth
             />
           </Grid>
         )}
-        <Grid item xs={4}>
+        <Grid item xs={6}>
           <Field
             component={CheckboxWithLabel}
             type="checkbox"
@@ -353,23 +377,33 @@ let ConfigField = ({ field, path, add, remove }) => (
             color="primary"
           />
         </Grid>
-        <Grid item xs={4}>
+        <Grid item xs={6}>
           <Field
             component={CheckboxWithLabel}
             type="checkbox"
             name={`${path}.multiple`}
             Label={{ label: "Multiple" }}
-            disabled={field.multiline}
+            disabled={field.type === "signature" || field.multiline}
             color="primary"
           />
         </Grid>
-        <Grid item xs={4}>
+        <Grid item xs={6}>
           <Field
             component={CheckboxWithLabel}
             type="checkbox"
             name={`${path}.multiline`}
             Label={{ label: "Multiline" }}
-            disabled={field.multiple}
+            disabled={field.type !== "text" || field.multiple}
+            color="primary"
+          />
+        </Grid>
+        <Grid item xs={6}>
+          <Field
+            component={CheckboxWithLabel}
+            type="checkbox"
+            name={`${path}.vertical`}
+            Label={{ label: "Vertical" }}
+            disabled={field.type === "signature" || !field.multiple}
             color="primary"
           />
         </Grid>
@@ -386,6 +420,17 @@ let ConfigField = ({ field, path, add, remove }) => (
   </Card>
 );
 
+let types = {
+  signature: "Signature",
+  text: "Text",
+  email: "Email",
+  tel: "Phone #",
+  select: "Select",
+  number: "Number",
+};
+
+let reuseTypes = ["text", "email", "tel"];
+
 let blankStep = () => ({
   name: "",
   showPdf: false,
@@ -395,11 +440,13 @@ let blankStep = () => ({
 let blankField = () => ({
   name: "",
   label: "",
+  reuse: false,
   type: "text",
   options: [],
   required: true,
   multiple: false,
   multiline: false,
+  vertical: false,
 });
 
 let objectToArray = (config) => ({
@@ -477,7 +524,7 @@ function Pdf({ file, config }) {
     let [name, path] = stamp;
 
     let value = getIn(values, path) || {
-      left: -95,
+      left: -105,
       top: i * 25,
       width: 100,
       height: 20,

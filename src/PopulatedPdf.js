@@ -74,11 +74,12 @@ export async function populatePdf(template, config, values) {
           : value.timestamp.toDateString();
       }
 
-      if (Array.isArray(value)) value = value.join(pos.vertical ? "\n" : ", ");
+      if (Array.isArray(value))
+        value = value.join(field.vertical ? "\n" : ", ");
 
       page.drawText(value.toString(), {
         x: pos.left,
-        y: height - (pos.top + pos.height),
+        y: height - (pos.top + pos.height) + 2, // TODO Not sure why +2 is needed...
         size: pos.height * 1.25,
         font: helveticaFont,
       });

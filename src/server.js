@@ -40,18 +40,27 @@ export function get_template_pdf(template) {
 }
 
 export function get_template_config(template) {
-  let config = getSuspense(`/${template}/get_template_config`);
-  config.initialValues = Object.fromEntries(
-    Object.values(config.steps)
+  return getSuspense(`/${template}/get_template_config`, async (resp) => {
+    let config = await resp.json();
+    config.initialValues = Object.fromEntries(
+      Object.values(config.steps)
+        .map((step) =>
+          Object.entries(step.fields).map(([name, field]) => [
+            name,
+            field.multiple ? [] : "",
+          ])
+        )
+        .flat()
+    );
+    config.reuseFields = Object.values(config.steps)
       .map((step) =>
-        Object.entries(step.fields).map(([name, field]) => [
-          name,
-          field.multiple ? [] : "",
-        ])
+        Object.entries(step.fields)
+          .filter(([name, field]) => field.reuse)
+          .map(([name, field]) => name)
       )
-      .flat()
-  );
-  return config;
+      .flat();
+    return config
+  });
 }
 
 export function get_template(template) {
