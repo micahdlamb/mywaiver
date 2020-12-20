@@ -13,10 +13,14 @@ import {
   TextField,
   MenuItem,
   InputAdornment,
+  Popover,
+  Typography,
+  Tooltip,
 } from "@material-ui/core";
 import AddIcon from "@material-ui/icons/Add";
 import DeleteIcon from "@material-ui/icons/Delete";
 import VpnKeyIcon from "@material-ui/icons/VpnKey";
+import HelpIcon from "@material-ui/icons/Help";
 
 import { format } from "date-fns";
 import * as pdf from "react-pdf";
@@ -117,7 +121,7 @@ export default function Configure() {
           cfg.pdfHeight = pdf.dim.height;
         }
 
-        let secretName = name;
+        let secretName = name.toLowerCase().replaceAll(" ", "_");
         if (!secretName.includes("__"))
           secretName += "__" + Math.random().toString(36).substr(2, 9);
 
@@ -169,6 +173,7 @@ export default function Configure() {
                     variant="outlined"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    helperText="Unique name for this template"
                   />
                 </div>
                 <div className={classes.config}>
@@ -185,7 +190,7 @@ export default function Configure() {
                       <Field
                         component={ChipInput}
                         name="emailTo"
-                        label="Email To"
+                        label="Email Signed Waivers To"
                         fullWidth
                       />
                     </Grid>
@@ -194,7 +199,7 @@ export default function Configure() {
                         select={true}
                         component={TextField_}
                         name="timestampFormat"
-                        label="Timestamp Format"
+                        label="Signature Timestamp Format"
                         fullWidth
                       >
                         {timestampFormats.map((value) => (
@@ -210,7 +215,17 @@ export default function Configure() {
                         render={({ push, insert, remove }) => (
                           <Card variant="outlined">
                             <CardHeader
-                              title="Steps"
+                              title={
+                                <>
+                                  Steps{" "}
+                                  <Help>
+                                    Each step is a group of related of fields
+                                    that make up a page in the waiver. Typically
+                                    you'll show the pdf and collect signatures
+                                    on the last step.
+                                  </Help>
+                                </>
+                              }
                               action={
                                 <IconButton
                                   onClick={(e) => push(blankStep())}
@@ -330,14 +345,16 @@ let ConfigField = ({ field, path, add, remove }) => (
             InputProps={
               (reuseTypes.includes(field.type) || null) && {
                 endAdornment: (
-                  <InputAdornment position="end">
-                    <Field
-                      component={Checkbox}
-                      type="checkbox"
-                      name={`${path}.reuse`}
-                      checkedIcon={<VpnKeyIcon />}
-                    />
-                  </InputAdornment>
+                  <Tooltip title="Prompt user to reuse a previously signed waiver. Typically used on an email or phone field.">
+                    <InputAdornment position="end">
+                      <Field
+                        component={Checkbox}
+                        type="checkbox"
+                        name={`${path}.reuse`}
+                        checkedIcon={<VpnKeyIcon />}
+                      />
+                    </InputAdornment>
+                  </Tooltip>
                 ),
               }
             }
@@ -612,4 +629,58 @@ function* getStamps(config) {
         if (field.type === "signature")
           yield [`${field.name}-TS`, `${path}.timestampPosition`];
       }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+const useHelpStyles = makeStyles((theme) => ({
+  typography: {
+    padding: theme.spacing(2),
+    maxWidth: 400,
+  },
+}));
+
+function Help({ children }) {
+  const classes = useHelpStyles();
+  const [anchorEl, setAnchorEl] = React.useState(null);
+
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const open = Boolean(anchorEl);
+  const id = open ? "help-popover" : undefined;
+
+  return (
+    <>
+      <IconButton
+        aria-describedby={id}
+        variant="contained"
+        color="primary"
+        onClick={handleClick}
+      >
+        <HelpIcon />
+      </IconButton>
+      <Popover
+        id={id}
+        open={open}
+        anchorEl={anchorEl}
+        onClose={handleClose}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "center",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "center",
+        }}
+      >
+        <Typography className={classes.typography}>{children}</Typography>
+      </Popover>
+    </>
+  );
 }

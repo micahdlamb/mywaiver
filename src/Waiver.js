@@ -147,7 +147,7 @@ export default function Waiver() {
                       <Field
                         component={field.multiple ? ChipInput : TextField}
                         type={field.type}
-                        multiline={field.multiline}
+                        multiline={field.multiline || undefined}
                         name={name}
                         label={field.label || name}
                         fullWidth
