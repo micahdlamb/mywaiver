@@ -129,7 +129,7 @@ async def email_pdf(pdf, to):
     async with aiosmtplib.SMTP('smtp.gmail.com', 587) as server:
         await server.starttls()
         await server.login(os.environ['from_email'], os.environ['gmail_app_password'])
-        await server.send_message(msg, os.environ['from_email'], to.split())
+        await server.send_message(msg, os.environ['from_email'], to)
 
 # Serve React App ######################################################################################################
 

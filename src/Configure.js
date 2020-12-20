@@ -17,6 +17,8 @@ import {
 import AddIcon from "@material-ui/icons/Add";
 import DeleteIcon from "@material-ui/icons/Delete";
 import VpnKeyIcon from "@material-ui/icons/VpnKey";
+
+import { format } from "date-fns";
 import * as pdf from "react-pdf";
 
 import { Formik, Field, FieldArray, useFormikContext, getIn } from "formik";
@@ -77,8 +79,8 @@ export default function Configure() {
           config: {
             title: "My Waiver",
             reuseSubmission: "",
-            emailTo: "",
-            timestampFormat: "",
+            emailTo: [],
+            timestampFormat: timestampFormats[0],
             steps: {},
           },
         };
@@ -181,7 +183,7 @@ export default function Configure() {
                     </Grid>
                     <Grid item xs={12} sm={6}>
                       <Field
-                        component={TextField_}
+                        component={ChipInput}
                         name="emailTo"
                         label="Email To"
                         fullWidth
@@ -189,11 +191,18 @@ export default function Configure() {
                     </Grid>
                     <Grid item xs={12} sm={6}>
                       <Field
+                        select={true}
                         component={TextField_}
                         name="timestampFormat"
                         label="Timestamp Format"
                         fullWidth
-                      />
+                      >
+                        {timestampFormats.map((value) => (
+                          <MenuItem value={value} key={value}>
+                            {format(d, value)}
+                          </MenuItem>
+                        ))}
+                      </Field>
                     </Grid>
                     <Grid item xs={12}>
                       <FieldArray
@@ -419,6 +428,15 @@ let ConfigField = ({ field, path, add, remove }) => (
     </CardActions>
   </Card>
 );
+
+let timestampFormats = [
+  "iii LLL d yyyy",
+  "M/d/yy",
+  "yyyy-MM-dd",
+  "yyyy-MM-dd hh:mm:ss",
+];
+
+let d = new Date();
 
 let types = {
   signature: "Signature",
