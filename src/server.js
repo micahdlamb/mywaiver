@@ -31,8 +31,12 @@ export function get_user() {
 
 // ------------------------------------------------------------------------------------------------
 
-export function get_template_names() {
-  return getSuspense("/get_template_names");
+export function get_my_template_names() {
+  return getSuspense("/get_my_template_names");
+}
+
+export function get_demo_template_names() {
+  return getSuspense("/get_demo_template_names");
 }
 
 export function get_template_pdf(template) {

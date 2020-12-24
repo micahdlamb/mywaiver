@@ -3,7 +3,6 @@ import { useParams, useHistory } from "react-router-dom";
 import {
   makeStyles,
   Grid,
-  Paper,
   Card,
   CardHeader,
   CardContent,
@@ -40,20 +39,19 @@ import * as server from "./server";
 import * as snackbar from "./snackbar";
 
 const useStyles = makeStyles((theme) => ({
-  paper: {
-    margin: theme.spacing(2),
-    padding: theme.spacing(2),
+  right: {
+    backgroundColor: "white",
   },
   top: {
     textAlign: "center",
-    margin: theme.spacing(2),
+    margin: theme.spacing(3),
     "& > *": {
       width: "30ch",
     },
   },
   config: {
+    margin: theme.spacing(2),
     "& .MuiPaper-root": {
-      backgroundColor: "white",
       "& .MuiPaper-root": {
         backgroundColor: "#EEF",
         "& .MuiPaper-root": {
@@ -136,128 +134,122 @@ export default function Configure() {
       {({ submitForm, values }) => (
         <>
           <Page
-            title={`Configure ${template || " New Waiver"}`}
+            title={`Configure ${template ? values.title : " New Waiver"}`}
             buttons={
               <Button color="inherit" onClick={submitForm} disabled={!pdf}>
                 Save
               </Button>
             }
           />
-          <Paper m={2} p={2} className={classes.paper}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} lg={6}>
-                <div className={classes.top}>
-                  <input
-                    type="file"
-                    id="select-pdf"
-                    accept="application/pdf"
-                    hidden
-                    onChange={(e) => setPdf(e.target.files[0] || pdf)}
-                  />
-                  <label htmlFor="select-pdf">
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      component="span"
-                    >
-                      Select Pdf
-                    </Button>
-                  </label>
-                </div>
-                <Pdf file={pdf} config={values} />
-              </Grid>
-              <Grid item xs={12} lg={6}>
-                <div className={classes.top}>
-                  <TextField
-                    label="URL"
-                    variant="outlined"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    helperText="Unique name for this template"
-                  />
-                </div>
-                <div className={classes.config}>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6}>
-                      <Field
-                        component={TextField_}
-                        name="title"
-                        label="Title"
-                        fullWidth
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <Field
-                        component={ChipInput}
-                        name="emailTo"
-                        label="Email Signed Waivers To"
-                        fullWidth
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <Field
-                        select={true}
-                        component={TextField_}
-                        name="timestampFormat"
-                        label="Signature Timestamp Format"
-                        fullWidth
-                      >
-                        {timestampFormats.map((value) => (
-                          <MenuItem value={value} key={value}>
-                            {format(d, value)}
-                          </MenuItem>
-                        ))}
-                      </Field>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <FieldArray
-                        name="steps"
-                        render={({ push, insert, remove }) => (
-                          <Card variant="outlined">
-                            <CardHeader
-                              title={
-                                <>
-                                  Steps{" "}
-                                  <Help>
-                                    Each step is a group of related of fields
-                                    that make up a page in the waiver. Typically
-                                    you'll show the pdf and collect signatures
-                                    on the last step.
-                                  </Help>
-                                </>
-                              }
-                              action={
-                                <IconButton
-                                  onClick={(e) => push(blankStep())}
-                                  color="primary"
-                                >
-                                  <AddIcon />
-                                </IconButton>
-                              }
-                            />
-                            <CardContent>
-                              <Grid container spacing={2}>
-                                {values.steps.map((step, i) => (
-                                  <Grid item key={i} xs={12} md={6} lg={12}>
-                                    <Step
-                                      step={step}
-                                      path={`steps[${i}]`}
-                                      add={(e) => insert(i + 1, blankStep())}
-                                      remove={(e) => remove(i)}
-                                    />
-                                  </Grid>
-                                ))}
-                              </Grid>
-                            </CardContent>
-                          </Card>
-                        )}
-                      />
-                    </Grid>
-                  </Grid>
-                </div>
-              </Grid>
+          <Grid container>
+            <Grid item xs={12} lg={6}>
+              <div className={classes.top}>
+                <input
+                  type="file"
+                  id="select-pdf"
+                  accept="application/pdf"
+                  hidden
+                  onChange={(e) => setPdf(e.target.files[0] || pdf)}
+                />
+                <label htmlFor="select-pdf">
+                  <Button variant="contained" color="primary" component="span">
+                    Select Pdf
+                  </Button>
+                </label>
+              </div>
+              <Pdf file={pdf} config={values} />
             </Grid>
-          </Paper>
+            <Grid item xs={12} lg={6} className={classes.right}>
+              <div className={classes.top}>
+                <TextField
+                  label="URL"
+                  variant="outlined"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  helperText="Unique name for this template"
+                />
+              </div>
+              <div className={classes.config}>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <Field
+                      component={TextField_}
+                      name="title"
+                      label="Title"
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Field
+                      component={ChipInput}
+                      name="emailTo"
+                      label="Email Signed Waivers To"
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Field
+                      select={true}
+                      component={TextField_}
+                      name="timestampFormat"
+                      label="Signature Timestamp Format"
+                      fullWidth
+                    >
+                      {timestampFormats.map((value) => (
+                        <MenuItem value={value} key={value}>
+                          {format(d, value)}
+                        </MenuItem>
+                      ))}
+                    </Field>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <FieldArray
+                      name="steps"
+                      render={({ push, insert, remove }) => (
+                        <Card variant="outlined">
+                          <CardHeader
+                            title={
+                              <>
+                                Steps{" "}
+                                <Help>
+                                  Each step is a set of related of fields that
+                                  are grouped together in the waiver. Typically
+                                  you'll show the pdf and collect signatures on
+                                  the last step.
+                                </Help>
+                              </>
+                            }
+                            action={
+                              <IconButton
+                                onClick={(e) => push(blankStep())}
+                                color="primary"
+                              >
+                                <AddIcon />
+                              </IconButton>
+                            }
+                          />
+                          <CardContent>
+                            <Grid container spacing={2}>
+                              {values.steps.map((step, i) => (
+                                <Grid item key={i} xs={12} md={6} lg={12}>
+                                  <Step
+                                    step={step}
+                                    path={`steps[${i}]`}
+                                    add={(e) => insert(i + 1, blankStep())}
+                                    remove={(e) => remove(i)}
+                                  />
+                                </Grid>
+                              ))}
+                            </Grid>
+                          </CardContent>
+                        </Card>
+                      )}
+                    />
+                  </Grid>
+                </Grid>
+              </div>
+            </Grid>
+          </Grid>
         </>
       )}
     </Formik>

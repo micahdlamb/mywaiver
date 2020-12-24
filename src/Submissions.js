@@ -32,7 +32,7 @@ export default function Submissions() {
 
   return (
     <>
-      <Page title={template} />
+      <Page title={`${config.title} Submissions`} />
       <Box p={2} mx={"auto"} maxWidth={1200}>
         {submissions ? (
           submissions.length ? (

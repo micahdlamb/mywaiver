@@ -33,9 +33,13 @@ def get_user():
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-@app.route('/get_template_names', methods=['GET'])
-async def get_template_names():
-    return jsonify(await db.get_template_names(session.get('user', '')))
+@app.route('/get_my_template_names', methods=['GET'])
+async def get_my_template_names():
+    return jsonify(await db.get_template_names(session['user']))
+
+@app.route('/get_demo_template_names', methods=['GET'])
+async def get_demo_template_names():
+    return jsonify(await db.get_template_names(''))
 
 @app.route('/<template>/get_template_pdf', methods=['GET'])
 async def get_template_pdf(template):

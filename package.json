@@ -23,7 +23,8 @@
     "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.3",
     "react-signature-canvas": "^1.0.3",
-    "react-sizeme": "^2.6.12"
+    "react-sizeme": "^2.6.12",
+    "react-swipeable-views": "^0.13.9"
   },
   "scripts": {
     "start": "react-scripts start",

@@ -5,7 +5,8 @@ import * as snackbar from "./snackbar";
 
 import Page from "./Page";
 import User from "./User";
-import Links from "./Links";
+import LandingPage from "./LandingPage";
+import { MyWaivers, DemoWaivers } from "./Links";
 import Waiver from "./Waiver";
 import Submissions from "./Submissions";
 import Configure from "./Configure";
@@ -17,7 +18,13 @@ export default function App() {
         <Router>
           <Switch>
             <Route exact path="/">
-              <Links />
+              <LandingPage />
+            </Route>
+            <Route exact path="/mywaivers">
+              <MyWaivers />
+            </Route>
+            <Route exact path="/demos">
+              <DemoWaivers />
             </Route>
             <Route exact path="/user">
               <User />

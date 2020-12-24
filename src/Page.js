@@ -1,6 +1,6 @@
 // https://github.com/mui-org/material-ui/tree/master/docs/src/pages/getting-started/templates/checkout
 import React from "react";
-import { useHistory } from "react-router-dom";
+import { useHistory, Link as RouterLink } from "react-router-dom";
 import {
   makeStyles,
   CssBaseline,
@@ -13,14 +13,15 @@ import {
   IconButton,
 } from "@material-ui/core";
 import AccountCircle from "@material-ui/icons/AccountCircle";
+import AssignmentIcon from "@material-ui/icons/Assignment";
 
 import * as server from "./server";
 
-function Copyright() {
+export function Copyright() {
   return (
     <Typography variant="body2" color="textSecondary" align="center">
       {"Copyright © "}
-      <Link color="inherit" href="https://material-ui.com/">
+      <Link color="inherit" href="/">
         My Waiver App
       </Link>{" "}
       {new Date().getFullYear()}
@@ -63,6 +64,7 @@ export default function Page({
   title,
   contentWidth,
   showUser,
+  showLinks,
   showCopyright,
   children,
   buttons,
@@ -72,7 +74,7 @@ export default function Page({
 
   async function login() {
     await server.login();
-    history.go(0);
+    history.push("/mywaivers");
   }
 
   return (
@@ -102,6 +104,11 @@ export default function Page({
                 Login
               </Button>
             ))}
+          {showLinks && (
+            <IconButton color="inherit" component={RouterLink} to="/mywaivers">
+              <AssignmentIcon />
+            </IconButton>
+          )}
         </Toolbar>
       </AppBar>
 
