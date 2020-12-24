@@ -13,6 +13,7 @@ import {
   LinearProgress,
   MenuItem,
 } from "@material-ui/core";
+import SendIcon from "@material-ui/icons/Send";
 
 import { Formik, Form, Field } from "formik";
 import { TextField } from "formik-material-ui";
@@ -47,6 +48,7 @@ export default function Waiver() {
 
   let config = server.get_template_config(template);
   let stepNames = Object.keys(config.steps);
+  let isLastStep = activeStep === stepNames.length - 1;
   let step = Object.values(config.steps)[activeStep];
 
   const handleBack = () => {
@@ -169,8 +171,9 @@ export default function Waiver() {
                 onClick={submitForm}
                 className={classes.button}
                 disabled={isSubmitting}
+                endIcon={isLastStep ? <SendIcon /> : undefined}
               >
-                {activeStep !== stepNames.length - 1 ? "Next" : "Submit"}
+                {isLastStep ? "Accept" : "Next"}
               </Button>
             </div>
 
