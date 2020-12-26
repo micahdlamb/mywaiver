@@ -31,9 +31,10 @@ def acquire_cursor(func):
 
 @acquire_cursor
 async def get_template_names(cur, owner):
-    await cur.execute(f"select name from waiver_template where owner=? order by name", owner)
+    await cur.execute("select name, json_value(config, '$.title') as title "
+                      "from waiver_template where owner=? order by title", owner)
     rows = await cur.fetchall()
-    return [row[0] for row in rows]
+    return [[row[0], row[1]] for row in rows]
 
 templates = {}
 

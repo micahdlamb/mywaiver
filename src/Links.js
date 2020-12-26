@@ -72,10 +72,10 @@ function Links({ templates }) {
 
   return (
     <List component="nav" className={classes.root}>
-      {templates.map((template) => (
+      {templates.map(([template, title]) => (
         <ListItem button key={template}>
           <Link component={RouterLink} to={`/${template}`}>
-            {template}
+            {title}
           </Link>
           <ListItemSecondaryAction className={classes.configure}>
             <IconButton
