@@ -34,7 +34,7 @@ import ChipInput from "./ChipInput";
 
 import { Rnd } from "react-rnd";
 
-import Page from "./Page";
+import {AppBar} from "./Page";
 import * as server from "./server";
 import * as snackbar from "./snackbar";
 
@@ -133,7 +133,7 @@ export default function Configure() {
     >
       {({ submitForm, values }) => (
         <>
-          <Page
+          <AppBar
             title={`Configure ${template ? values.title : " New Waiver"}`}
             buttons={
               <Button color="inherit" onClick={submitForm} disabled={!pdf}>

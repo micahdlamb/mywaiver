@@ -17,7 +17,7 @@ import {
 } from "@material-ui/core";
 import OpenInNewIcon from "@material-ui/icons/OpenInNew";
 
-import Page from "./Page";
+import {AppBar} from "./Page";
 
 import * as server from "./server";
 
@@ -32,7 +32,7 @@ export default function Submissions() {
 
   return (
     <>
-      <Page title={`${config.title} Submissions`} />
+      <AppBar title={`${config.title} Submissions`} />
       <Box p={2} mx={"auto"} maxWidth={1200}>
         {submissions ? (
           submissions.length ? (
