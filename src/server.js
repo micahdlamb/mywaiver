@@ -63,7 +63,7 @@ export function get_template_config(template) {
           .map(([name, field]) => name)
       )
       .flat();
-    return config
+    return config;
   });
 }
 
@@ -103,13 +103,24 @@ export function submit(template, pdfBytes, values) {
 export async function get_submissions(template, where) {
   let qs = new URLSearchParams(where);
   let submissions = await get(`/${template}/get_submissions?${qs}`);
+  _fixTypes(template, submissions);
+  return submissions;
+}
+
+export async function search_submissions(template, query) {
+  let qs = query ? new URLSearchParams({query: query+'%'}) : '';
+  let submissions = await get(`/${template}/search_submissions?${qs}`);
+  _fixTypes(template, submissions);
+  return submissions;
+}
+
+function _fixTypes(template, submissions) {
   let config = get_template_config(template);
   for (let sub of submissions)
     for (let [name, value] of Object.entries(sub.values))
       sub.values[name] = Array.isArray(config.initialValues[name])
         ? value.split(",")
         : value;
-  return submissions;
 }
 
 export function get_submission_pdf_url(template, id) {

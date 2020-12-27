@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, Link as RouterLink } from "react-router-dom";
 import { formatDistanceToNow, fromUnixTime } from "date-fns";
 import {
@@ -17,7 +17,7 @@ import {
 } from "@material-ui/core";
 import OpenInNewIcon from "@material-ui/icons/OpenInNew";
 
-import {AppBar} from "./Page";
+import { AppBar } from "./Page";
 
 import * as server from "./server";
 
@@ -26,13 +26,22 @@ export default function Submissions() {
   let [submissions, setSubmissions] = useState(null);
   let config = server.get_template_config(template);
 
+  let search = useCallback(
+    async (query) => {
+      setSubmissions(null);
+      let submissions = await server.search_submissions(template, query);
+      setSubmissions(submissions);
+    },
+    [template]
+  );
+
   useEffect(() => {
-    server.get_submissions(template).then(setSubmissions);
-  }, [template]);
+    search();
+  }, [search]);
 
   return (
     <>
-      <AppBar title={`${config.title} Submissions`} />
+      <AppBar title={`${config.title} Submissions`} onSearch={search} />
       <Box p={2} mx={"auto"} maxWidth={1200}>
         {submissions ? (
           submissions.length ? (

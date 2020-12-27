@@ -25,7 +25,7 @@ export default function LandingPage() {
   return (
     <>
       <Page
-        title="My Waiver"
+        title="My Waiver App"
         contentWidth={600}
         showUser
         showLinks
@@ -52,10 +52,8 @@ export default function LandingPage() {
           onChangeIndex={handleChangeIndex}
         >
           <TabPanel value={value} index={0} dir={theme.direction}>
-            MyWaiver is designed for businesses that need customers to sign
-            waivers. Setup is simple using an existing pdf and completed waivers
-            are stored online for future retrieval. Waivers can be signed using
-            any touchscreen device. You can see a demo of signing a waiver here{" "}
+            Stop wasting paper and start using My Waiver App to e-sign and store your
+            waivers. You can see a demo of signing a waiver{" "}
             <Link component={RouterLink} to="/bounce_house__d7shgy09j">
               here.
             </Link>

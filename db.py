@@ -89,7 +89,7 @@ async def record_use(cur, template, id):
     """, template, id)
 
 @acquire_cursor
-async def get_waivers(cur, template, limit=150, **where):
+async def get_waivers(cur, template, limit=100, **where):
     joins   = '\n'.join(f'''join waiver_field f{i} on f{i}.waiver_id = w.id and f{i}.name = ?'''
                         for i in range(len(where)))
     filters = '\n'.join(f'and f{i}.value = ?' for i in range(len(where)))
@@ -101,6 +101,21 @@ async def get_waivers(cur, template, limit=150, **where):
         {filters}
         order by w.last_use_date desc
     """, int(limit), *where, template, *where.values())
+    return await _fetchall_waivers(cur)
+
+@acquire_cursor
+async def search_waivers(cur, template, query, limit=100):
+    await cur.execute("""
+        select distinct top (?) w.id, w.last_use_date
+        from waiver w
+        join waiver_field f on w.id = f.waiver_id
+        where w.template_id = (select id from waiver_template where name = ?)
+          and f.value like ?
+        order by w.last_use_date desc
+    """, int(limit), template, query)
+    return await _fetchall_waivers(cur)
+
+async def _fetchall_waivers(cur):
     waivers = [dict(id=row[0], last_use_date=to_timestamp(row[1])) for row in await cur.fetchall()]
     for waiver in waivers:
         await cur.execute("""

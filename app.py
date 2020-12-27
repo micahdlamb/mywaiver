@@ -103,6 +103,11 @@ async def submit(template):
 async def get_submissions(template):
     return jsonify(await db.get_waivers(template, **request.args))
 
+@app.route('/<template>/search_submissions', methods=['GET'])
+async def search_submissions(template):
+    query = request.args.get('query')
+    return jsonify(await (db.search_waivers(template, query) if query else db.get_waivers(template)))
+
 @app.route('/<template>/<id>/get_submission_pdf')
 async def get_submission_pdf(template, id):
     pdf = await db.get_submission_pdf(template, id)
