@@ -30,6 +30,14 @@ def acquire_cursor(func):
 ########################################################################################################################
 
 @acquire_cursor
+async def get_all_users(cur):
+    await cur.execute("select distinct owner from waiver_template")
+    rows = await cur.fetchall()
+    return [row[0] for row in rows if row[0]]
+
+########################################################################################################################
+
+@acquire_cursor
 async def get_template_names(cur, owner):
     await cur.execute("select name, json_value(config, '$.title') as title "
                       "from waiver_template where owner=? order by title", owner)
@@ -81,12 +89,12 @@ async def save_waiver(cur, template, bytes, fields):
         """, waiver_id, name, value)
 
 @acquire_cursor
-async def record_use(cur, template, id):
+async def record_use(cur, template, waiver_id):
     await cur.execute("""
         update waiver set last_use_date = CURRENT_TIMESTAMP
         where template_id = (select id from waiver_template where name = ?)
           and id = ?
-    """, template, id)
+    """, template, waiver_id)
 
 @acquire_cursor
 async def get_waivers(cur, template, limit=100, **where):

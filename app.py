@@ -1,5 +1,5 @@
 import os
-from quart import Quart, jsonify, request, session, send_from_directory, make_response, url_for
+from quart import Quart, jsonify, request, session, send_from_directory, make_response, url_for, exceptions
 import httpx; http = httpx.AsyncClient()
 import db
 
@@ -30,6 +30,23 @@ def logout():
 @app.route('/get_user', methods=['GET'])
 def get_user():
     return jsonify(session.get("user"))
+
+# Admin ----------------------------------------------------------------------------------------------------------------
+
+@app.route('/get_all_users', methods=['GET'])
+async def get_all_users():
+    require_admin()
+    return jsonify(await db.get_all_users())
+
+@app.route('/login_as/<user>')
+async def login_as(user):
+    require_admin()
+    session['user'] = user
+    return "great success"
+
+def require_admin():
+    if session.get('user') != "micah.d.lamb@gmail.com":
+        raise exceptions.Unauthorized()
 
 #-----------------------------------------------------------------------------------------------------------------------
 
