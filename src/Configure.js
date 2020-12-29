@@ -3,10 +3,7 @@ import { useParams, useHistory } from "react-router-dom";
 import {
   makeStyles,
   Grid,
-  Card,
-  CardHeader,
-  CardContent,
-  CardActions,
+  Paper,
   IconButton,
   Button,
   TextField,
@@ -34,7 +31,7 @@ import ChipInput from "./ChipInput";
 
 import { Rnd } from "react-rnd";
 
-import {AppBar} from "./Page";
+import { AppBar } from "./Page";
 import * as server from "./server";
 import * as snackbar from "./snackbar";
 
@@ -51,18 +48,16 @@ const useStyles = makeStyles((theme) => ({
   },
   config: {
     margin: theme.spacing(2),
-    "& .MuiPaper-root": {
-      "& .MuiPaper-root": {
-        backgroundColor: "#EEF",
-        "& .MuiPaper-root": {
-          backgroundColor: "white",
-          "& .MuiPaper-root": {
-            backgroundColor: "#EFE",
-          },
-        },
-      },
+    "& .step": {
+      backgroundColor: "#f5dbff",
+      padding: theme.spacing(2),
+    },
+    "& .field": {
+      backgroundColor: "#dffffd",
+      padding: theme.spacing(2),
     },
     "& .space-between": {
+      display: "flex",
       justifyContent: "space-between",
     },
   },
@@ -99,12 +94,12 @@ export default function Configure() {
         const errors = {};
         return errors;
       }}
-      onSubmit={async (cfg, { setTouched, setSubmitting, resetForm }) => {
+      onSubmit={async (cfg) => {
         // Clear out invalid values
         let inPdf = (pos) => pos && pos.left + pos.width > 0;
         for (let step of cfg.steps)
           for (let field of step.fields) {
-            // null out positions outside the pdf so PopulatedPdf ignores them
+            // null out positions outside the pdf so populatePdf ignores them
             if (!inPdf(field.position)) field.position = undefined;
             if (!inPdf(field.timestampPosition))
               field.timestampPosition = undefined;
@@ -206,43 +201,35 @@ export default function Configure() {
                     <FieldArray
                       name="steps"
                       render={({ push, insert, remove }) => (
-                        <Card variant="outlined">
-                          <CardHeader
-                            title={
-                              <>
-                                Steps{" "}
-                                <Help>
-                                  Each step is a set of related of fields that
-                                  are grouped together in the waiver. Typically
-                                  you'll show the pdf and collect signatures on
-                                  the last step.
-                                </Help>
-                              </>
-                            }
-                            action={
-                              <IconButton
-                                onClick={(e) => push(blankStep())}
-                                color="primary"
-                              >
-                                <AddIcon />
-                              </IconButton>
-                            }
-                          />
-                          <CardContent>
-                            <Grid container spacing={2}>
-                              {values.steps.map((step, i) => (
-                                <Grid item key={i} xs={12} md={6} lg={12}>
-                                  <Step
-                                    step={step}
-                                    path={`steps[${i}]`}
-                                    add={(e) => insert(i + 1, blankStep())}
-                                    remove={(e) => remove(i)}
-                                  />
-                                </Grid>
-                              ))}
+                        <Grid container spacing={2}>
+                          <Grid item xs={12} className="space-between">
+                            <Typography variant="h5">
+                              Steps{" "}
+                              <Help>
+                                Each step is a set of related of fields that are
+                                grouped together in the waiver. Typically you'll
+                                show the pdf and collect signatures on the last
+                                step.
+                              </Help>
+                            </Typography>
+                            <IconButton
+                              onClick={(e) => push(blankStep())}
+                              color="primary"
+                            >
+                              <AddIcon />
+                            </IconButton>
+                          </Grid>
+                          {values.steps.map((step, i) => (
+                            <Grid item key={i} xs={12} md={6} lg={12}>
+                              <Step
+                                step={step}
+                                path={`steps[${i}]`}
+                                add={(e) => insert(i + 1, blankStep())}
+                                remove={(e) => remove(i)}
+                              />
                             </Grid>
-                          </CardContent>
-                        </Card>
+                          ))}
+                        </Grid>
                       )}
                     />
                   </Grid>
@@ -257,185 +244,181 @@ export default function Configure() {
 }
 
 let Step = ({ step, path, add, remove }) => (
-  <Card variant="outlined" square>
-    <CardContent>
-      <Grid container spacing={2}>
-        <Grid item xs={12} sm={8}>
-          <Field
-            component={TextField_}
-            name={`${path}.name`}
-            label="Name"
-            fullWidth
-          />
-        </Grid>
-        <Grid item xs={12} sm={4}>
-          <Field
-            component={CheckboxWithLabel}
-            type="checkbox"
-            name={`${path}.showPdf`}
-            Label={{ label: "Show PDF" }}
-            color="primary"
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <FieldArray
-            name={`${path}.fields`}
-            render={({ push, insert, remove }) => (
-              <Card variant="outlined">
-                <CardHeader
-                  title="Fields"
-                  action={
-                    <IconButton
-                      onClick={(e) => push(blankField())}
-                      color="primary"
-                    >
-                      <AddIcon />
-                    </IconButton>
-                  }
-                />
-                <CardContent>
-                  <Grid container spacing={2}>
-                    {step.fields.map((field, i) => (
-                      <Grid item key={i} xs={12} sm={6}>
-                        <ConfigField
-                          field={field}
-                          path={`${path}.fields[${i}]`}
-                          add={(e) => insert(i + 1, blankField())}
-                          remove={(e) => remove(i)}
-                        />
-                      </Grid>
-                    ))}
-                  </Grid>
-                </CardContent>
-              </Card>
-            )}
-          />
-        </Grid>
+  <Paper className="step">
+    <Grid container spacing={2}>
+      <Grid item xs={12} sm={8}>
+        <Field
+          component={TextField_}
+          name={`${path}.name`}
+          label="Name"
+          fullWidth
+        />
       </Grid>
-    </CardContent>
-    <CardActions className="space-between">
-      <IconButton onClick={remove}>
-        <DeleteIcon />
-      </IconButton>
-      <IconButton onClick={add} color="primary">
-        <AddIcon />
-      </IconButton>
-    </CardActions>
-  </Card>
+      <Grid item xs={12} sm={4}>
+        <Field
+          component={CheckboxWithLabel}
+          type="checkbox"
+          name={`${path}.showPdf`}
+          Label={{ label: "Show PDF" }}
+          color="primary"
+        />
+      </Grid>
+      <Grid item xs={12}>
+        <FieldArray
+          name={`${path}.fields`}
+          render={({ push, insert, remove }) => (
+            <Grid container spacing={2}>
+              <Grid item xs={12} className="space-between">
+                <Typography variant="h6">
+                  Fields{" "}
+                  <Help>
+                    Information you want to collect. A simple waiver might just
+                    require a field for the user's name and signature. The
+                    field's <b>name</b> is a unique identifier that you want to
+                    avoid changing. The label is what actually gets displayed.
+                  </Help>
+                </Typography>
+                <IconButton onClick={(e) => push(blankField())} color="primary">
+                  <AddIcon />
+                </IconButton>
+              </Grid>
+
+              {step.fields.map((field, i) => (
+                <Grid item key={i} xs={12} sm={6}>
+                  <ConfigField
+                    field={field}
+                    path={`${path}.fields[${i}]`}
+                    add={(e) => insert(i + 1, blankField())}
+                    remove={(e) => remove(i)}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+          )}
+        />
+      </Grid>
+      <Grid item xs={12} className="space-between">
+        <IconButton onClick={remove}>
+          <DeleteIcon />
+        </IconButton>
+        <IconButton onClick={add} color="primary">
+          <AddIcon />
+        </IconButton>
+      </Grid>
+    </Grid>
+  </Paper>
 );
 
 let ConfigField = ({ field, path, add, remove }) => (
-  <Card variant="outlined" square>
-    <CardContent>
-      <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <Field
-            component={TextField_}
-            name={`${path}.name`}
-            label="Name"
-            fullWidth
-            InputProps={
-              (reuseTypes.includes(field.type) || null) && {
-                endAdornment: (
-                  <Tooltip title="Prompt user to reuse a previously signed waiver. Typically used on an email or phone field.">
-                    <InputAdornment position="end">
-                      <Field
-                        component={Checkbox}
-                        type="checkbox"
-                        name={`${path}.reuse`}
-                        checkedIcon={<VpnKeyIcon />}
-                      />
-                    </InputAdornment>
-                  </Tooltip>
-                ),
-              }
+  <Paper className="field">
+    <Grid container spacing={2}>
+      <Grid item xs={12}>
+        <Field
+          component={TextField_}
+          name={`${path}.name`}
+          label="Name"
+          fullWidth
+          InputProps={
+            (reuseTypes.includes(field.type) || null) && {
+              endAdornment: (
+                <Tooltip title="Prompt user to reuse a previously signed waiver. Typically used on an email or phone field.">
+                  <InputAdornment position="end">
+                    <Field
+                      component={Checkbox}
+                      type="checkbox"
+                      name={`${path}.reuse`}
+                      checkedIcon={<VpnKeyIcon />}
+                    />
+                  </InputAdornment>
+                </Tooltip>
+              ),
             }
-          />
-        </Grid>
-        <Grid item xs={2}></Grid>
-        <Grid item xs={12}>
-          <Field
-            component={TextField_}
-            name={`${path}.label`}
-            label="Label"
-            fullWidth
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <Field
-            select={true}
-            component={TextField_}
-            name={`${path}.type`}
-            label="Type"
-            fullWidth
-          >
-            {Object.entries(types).map(([value, label]) => (
-              <MenuItem value={value} key={value}>
-                {label}
-              </MenuItem>
-            ))}
-          </Field>
-        </Grid>
-        {field.type === "select" && (
-          <Grid item xs={12}>
-            <Field
-              component={ChipInput}
-              name={`${path}.options`}
-              label={"Options"}
-              fullWidth
-            />
-          </Grid>
-        )}
-        <Grid item xs={6}>
-          <Field
-            component={CheckboxWithLabel}
-            type="checkbox"
-            name={`${path}.required`}
-            Label={{ label: "Required" }}
-            color="primary"
-          />
-        </Grid>
-        <Grid item xs={6}>
-          <Field
-            component={CheckboxWithLabel}
-            type="checkbox"
-            name={`${path}.multiple`}
-            Label={{ label: "Multiple" }}
-            disabled={field.type === "signature" || field.multiline}
-            color="primary"
-          />
-        </Grid>
-        <Grid item xs={6}>
-          <Field
-            component={CheckboxWithLabel}
-            type="checkbox"
-            name={`${path}.multiline`}
-            Label={{ label: "Multiline" }}
-            disabled={field.type !== "text" || field.multiple}
-            color="primary"
-          />
-        </Grid>
-        <Grid item xs={6}>
-          <Field
-            component={CheckboxWithLabel}
-            type="checkbox"
-            name={`${path}.vertical`}
-            Label={{ label: "Vertical" }}
-            disabled={field.type === "signature" || !field.multiple}
-            color="primary"
-          />
-        </Grid>
+          }
+        />
       </Grid>
-    </CardContent>
-    <CardActions className="space-between">
-      <IconButton onClick={remove}>
-        <DeleteIcon />
-      </IconButton>
-      <IconButton onClick={add} color="primary">
-        <AddIcon />
-      </IconButton>
-    </CardActions>
-  </Card>
+      <Grid item xs={2}></Grid>
+      <Grid item xs={12}>
+        <Field
+          component={TextField_}
+          name={`${path}.label`}
+          label="Label"
+          fullWidth
+        />
+      </Grid>
+      <Grid item xs={12}>
+        <Field
+          select={true}
+          component={TextField_}
+          name={`${path}.type`}
+          label="Type"
+          fullWidth
+        >
+          {Object.entries(types).map(([value, label]) => (
+            <MenuItem value={value} key={value}>
+              {label}
+            </MenuItem>
+          ))}
+        </Field>
+      </Grid>
+      {field.type === "select" && (
+        <Grid item xs={12}>
+          <Field
+            component={ChipInput}
+            name={`${path}.options`}
+            label={"Options"}
+            fullWidth
+          />
+        </Grid>
+      )}
+      <Grid item xs={6}>
+        <Field
+          component={CheckboxWithLabel}
+          type="checkbox"
+          name={`${path}.required`}
+          Label={{ label: "Required" }}
+          color="primary"
+        />
+      </Grid>
+      <Grid item xs={6}>
+        <Field
+          component={CheckboxWithLabel}
+          type="checkbox"
+          name={`${path}.multiple`}
+          Label={{ label: "Multiple" }}
+          disabled={field.type === "signature" || field.multiline}
+          color="primary"
+        />
+      </Grid>
+      <Grid item xs={6}>
+        <Field
+          component={CheckboxWithLabel}
+          type="checkbox"
+          name={`${path}.multiline`}
+          Label={{ label: "Multiline" }}
+          disabled={field.type !== "text" || field.multiple}
+          color="primary"
+        />
+      </Grid>
+      <Grid item xs={6}>
+        <Field
+          component={CheckboxWithLabel}
+          type="checkbox"
+          name={`${path}.vertical`}
+          Label={{ label: "Vertical" }}
+          disabled={field.type === "signature" || !field.multiple}
+          color="primary"
+        />
+      </Grid>
+      <Grid item xs={12} className="space-between">
+        <IconButton onClick={remove}>
+          <DeleteIcon />
+        </IconButton>
+        <IconButton onClick={add} color="primary">
+          <AddIcon />
+        </IconButton>
+      </Grid>
+    </Grid>
+  </Paper>
 );
 
 let timestampFormats = [
