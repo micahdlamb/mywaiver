@@ -1,11 +1,25 @@
 import React, { useState, useEffect } from "react";
-import * as server from "./server";
+import { makeStyles } from "@material-ui/core";
 import { Document, Page } from "react-pdf";
 import { withSize } from "react-sizeme";
 import { format } from "date-fns";
 
+import * as server from "./server";
+
 import { pdfjs } from "react-pdf";
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
+
+const useStyles = makeStyles((theme) => ({
+  container: {
+    height: (props) => props.height,
+    cursor: "zoom-in",
+    "&:fullscreen": {
+      overflowY: "scroll",
+      overflowX: "hidden",
+      cursor: "unset",
+    },
+  },
+}));
 
 function PopulatedPdf({ template, config, values, size }) {
   let [file, setFile] = useState(null);
@@ -13,6 +27,7 @@ function PopulatedPdf({ template, config, values, size }) {
 
   let { pdfWidth, pdfHeight } = config;
   let height = (pdfHeight * size.width) / pdfWidth;
+  let classes = useStyles({ height });
 
   function handleLoadSuccess({ numPages }) {
     setNumPages(numPages);
@@ -22,8 +37,12 @@ function PopulatedPdf({ template, config, values, size }) {
     populatePdf(template, config, values).then((data) => setFile({ data }));
   }, [template, config, values]);
 
+  function goFullScreen(e) {
+    e.currentTarget.requestFullscreen();
+  }
+
   return (
-    <div style={{ height }}>
+    <div className={classes.container} onClick={goFullScreen}>
       {file && (
         <Document file={file} onLoadSuccess={handleLoadSuccess} loading={<></>}>
           {[...Array(numPages).keys()].map((pageNumber) => (
@@ -31,6 +50,7 @@ function PopulatedPdf({ template, config, values, size }) {
               key={pageNumber}
               pageNumber={pageNumber + 1}
               width={size.width}
+              renderTextLayer={false}
             />
           ))}
         </Document>
