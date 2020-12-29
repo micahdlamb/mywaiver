@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { makeStyles } from "@material-ui/core";
 import { Document, Page } from "react-pdf";
-import { withSize } from "react-sizeme";
 import { format } from "date-fns";
 
 import * as server from "./server";
@@ -15,18 +14,19 @@ const useStyles = makeStyles((theme) => ({
     cursor: "zoom-in",
     "&:fullscreen": {
       overflowY: "scroll",
-      overflowX: "hidden",
       cursor: "unset",
     },
   },
 }));
 
-function PopulatedPdf({ template, config, values, size }) {
+export default function PopulatedPdf({ template, config, values, width }) {
   let [file, setFile] = useState(null);
   let [numPages, setNumPages] = useState(0);
+  let [fullscreenWidth, setFullscreenWidth] = useState(null)
 
   let { pdfWidth, pdfHeight } = config;
-  let height = (pdfHeight * size.width) / pdfWidth;
+  width = fullscreenWidth || width;
+  let height = (pdfHeight * width) / pdfWidth;
   let classes = useStyles({ height });
 
   function handleLoadSuccess({ numPages }) {
@@ -37,8 +37,17 @@ function PopulatedPdf({ template, config, values, size }) {
     populatePdf(template, config, values).then((data) => setFile({ data }));
   }, [template, config, values]);
 
-  function goFullScreen(e) {
-    e.currentTarget.requestFullscreen();
+  async function goFullScreen(e) {
+    let container = e.currentTarget
+    await container.requestFullscreen();
+    document.onfullscreenchange = () => {
+      if (document.fullscreenElement)
+        setFullscreenWidth(container.clientWidth);
+      else {
+        setFullscreenWidth(null);
+        document.onfullscreenchange = undefined;
+      }
+    }
   }
 
   return (
@@ -49,8 +58,9 @@ function PopulatedPdf({ template, config, values, size }) {
             <Page
               key={pageNumber}
               pageNumber={pageNumber + 1}
-              width={size.width}
+              width={width}
               renderTextLayer={false}
+              loading={<></>}
             />
           ))}
         </Document>
@@ -58,8 +68,6 @@ function PopulatedPdf({ template, config, values, size }) {
     </div>
   );
 }
-
-export default withSize()(PopulatedPdf);
 
 export async function populatePdf(template, config, values) {
   let { PDFDocument, StandardFonts } = await import("pdf-lib");

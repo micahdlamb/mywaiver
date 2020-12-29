@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import _ from "lodash";
+import { withSize } from "react-sizeme";
 import {
   makeStyles,
   Stepper,
@@ -34,10 +35,9 @@ const useStyles = makeStyles((theme) => ({
   buttons: {
     display: "flex",
     justifyContent: "flex-end",
-  },
-  button: {
-    marginTop: theme.spacing(3),
-    marginLeft: theme.spacing(1),
+    "& > button": {
+      marginLeft: theme.spacing(1),
+    },
   },
 }));
 
@@ -64,7 +64,6 @@ export default function Waiver() {
           </Step>
         ))}
       </Stepper>
-
       <Formik
         initialValues={config.initialValues}
         validate={(values) => {
@@ -115,68 +114,71 @@ export default function Waiver() {
                   />
                 )
             )}
-            <Grid container spacing={3}>
-              {step.showPdf && (
-                <Grid item xs={12}>
-                  <PopulatedPdf
-                    template={template}
-                    config={config}
-                    values={values}
-                  />
-                </Grid>
-              )}
-              {Object.entries(step.fields).map(([name, field]) => (
-                <Grid item xs={12} key={name}>
-                  {(field.type === "signature" && (
-                    <SignatureInput name={name} label={field.label || name} />
-                  )) ||
-                    (field.type === "select" && (
-                      <Field
-                        component={TextField}
-                        select={true}
-                        SelectProps={{ multiple: field.multiple }}
-                        name={name}
-                        label={field.label || name}
-                        fullWidth
-                      >
-                        {field.options.map((option) => (
-                          <MenuItem key={option} value={option}>
-                            {option}
-                          </MenuItem>
-                        ))}
-                      </Field>
-                    )) || (
-                      <Field
-                        component={field.multiple ? ChipInput : TextField}
-                        type={field.type}
-                        multiline={field.multiline || undefined}
-                        name={name}
-                        label={field.label || name}
-                        fullWidth
+            <WithSize>
+              {(size) => (
+                <Grid container spacing={3}>
+                  {step.showPdf && (
+                    <Grid item xs={12}>
+                      <PopulatedPdf
+                        template={template}
+                        config={config}
+                        values={values}
+                        width={size.width}
                       />
+                    </Grid>
+                  )}
+                  {Object.entries(step.fields).map(([name, field]) => (
+                    <Grid item xs={12} key={name}>
+                      {(field.type === "signature" && (
+                        <SignatureInput
+                          name={name}
+                          label={field.label || name}
+                        />
+                      )) ||
+                        (field.type === "select" && (
+                          <Field
+                            component={TextField}
+                            select={true}
+                            SelectProps={{ multiple: field.multiple }}
+                            name={name}
+                            label={field.label || name}
+                            fullWidth
+                          >
+                            {field.options.map((option) => (
+                              <MenuItem key={option} value={option}>
+                                {option}
+                              </MenuItem>
+                            ))}
+                          </Field>
+                        )) || (
+                          <Field
+                            component={field.multiple ? ChipInput : TextField}
+                            type={field.type}
+                            multiline={field.multiline || undefined}
+                            name={name}
+                            label={field.label || name}
+                            fullWidth
+                          />
+                        )}
+                    </Grid>
+                  ))}
+                  <Grid item xs={12} className={classes.buttons}>
+                    {activeStep !== 0 && (
+                      <Button onClick={handleBack}>Back</Button>
                     )}
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={submitForm}
+                      disabled={isSubmitting}
+                      endIcon={isLastStep ? <SendIcon /> : undefined}
+                    >
+                      {isLastStep ? "Accept" : "Next"}
+                    </Button>
+                  </Grid>
                 </Grid>
-              ))}
-            </Grid>
-
-            <div className={classes.buttons}>
-              {activeStep !== 0 && (
-                <Button onClick={handleBack} className={classes.button}>
-                  Back
-                </Button>
               )}
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={submitForm}
-                className={classes.button}
-                disabled={isSubmitting}
-                endIcon={isLastStep ? <SendIcon /> : undefined}
-              >
-                {isLastStep ? "Accept" : "Next"}
-              </Button>
-            </div>
-
+            </WithSize>
             {isSubmitting && (
               <Box m={1}>
                 <LinearProgress />
@@ -188,3 +190,7 @@ export default function Waiver() {
     </Page>
   );
 }
+
+const WithSize = withSize()(({ size, children }) => (
+  <div>{children(size)}</div>
+));
