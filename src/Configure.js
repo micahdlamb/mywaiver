@@ -18,6 +18,7 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import VpnKeyIcon from "@material-ui/icons/VpnKey";
 import HelpIcon from "@material-ui/icons/Help";
 
+import _ from "lodash";
 import { format } from "date-fns";
 import * as pdf from "react-pdf";
 
@@ -92,8 +93,19 @@ export default function Configure() {
       initialValues={tpl.config}
       validate={(values) => {
         const errors = {};
+
+        if (!values.title) errors.title = "required";
+
+        for (let [i, step] of values.steps.entries()) {
+          if (!step.name) _.set(errors, `steps[${i}].name`, "required");
+          for (let [j, field] of step.fields.entries())
+            if (!field.name)
+              _.set(errors, `steps[${i}].fields[${j}].name`, "required");
+        }
+
         return errors;
       }}
+      validateOnChange={false}
       onSubmit={async (cfg) => {
         // Clear out invalid values
         let inPdf = (pos) => pos && pos.left + pos.width > 0;
@@ -249,7 +261,7 @@ let Step = ({ step, path, add, remove }) => (
         <Field
           component={TextField_}
           name={`${path}.name`}
-          label="Name"
+          label="Step Name"
           fullWidth
         />
       </Grid>
@@ -315,7 +327,7 @@ let ConfigField = ({ field, path, add, remove }) => (
         <Field
           component={TextField_}
           name={`${path}.name`}
-          label="Name"
+          label="Field Name"
           fullWidth
           InputProps={
             (reuseTypes.includes(field.type) || null) && {
