@@ -108,7 +108,7 @@ export async function get_submissions(template, where) {
 }
 
 export async function search_submissions(template, query) {
-  let qs = query ? new URLSearchParams({query: query+'%'}) : '';
+  let qs = query ? new URLSearchParams({ query: query + "%" }) : "";
   let submissions = await get(`/${template}/search_submissions?${qs}`);
   _fixTypes(template, submissions);
   return submissions;
@@ -131,6 +131,10 @@ export function record_use(template, id) {
   return fetch(`/${template}/${id}/record_use`, {
     method: "POST",
   }).then((resp) => resp.json());
+}
+
+export function get_use_counts(template, group_by) {
+  return get(`/${template}/${group_by}/get_use_counts`);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

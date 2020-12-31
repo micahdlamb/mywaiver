@@ -107,7 +107,7 @@ async def submit(template):
     files = await request.files
     pdf = files['pdf'].read()
     form = await request.form
-    await db.save_waiver(template, pdf, form)
+    await db.submit(template, pdf, form)
 
     tpl = await db.get_template(template)
     email_to = tpl['config'].get('emailTo')
@@ -118,12 +118,12 @@ async def submit(template):
 
 @app.route('/<template>/get_submissions', methods=['GET'])
 async def get_submissions(template):
-    return jsonify(await db.get_waivers(template, **request.args))
+    return jsonify(await db.get_submissions(template, **request.args))
 
 @app.route('/<template>/search_submissions', methods=['GET'])
 async def search_submissions(template):
     query = request.args.get('query')
-    return jsonify(await (db.search_waivers(template, query) if query else db.get_waivers(template)))
+    return jsonify(await (db.search_submissions(template, query) if query else db.get_submissions(template)))
 
 @app.route('/<template>/<id>/get_submission_pdf')
 async def get_submission_pdf(template, id):
@@ -137,6 +137,11 @@ async def get_submission_pdf(template, id):
 async def record_use(template, id):
     await db.record_use(template, id)
     return jsonify("great success")
+
+@app.route('/<template>/<group_by>/get_use_counts')
+async def get_use_counts(template, group_by):
+    counts = await db.get_use_counts(template, group_by)
+    return jsonify(counts)
 
 #-----------------------------------------------------------------------------------------------------------------------
 

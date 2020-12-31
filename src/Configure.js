@@ -130,12 +130,11 @@ export default function Configure() {
         <>
           <AppBar
             title={`Configure ${template ? values.title : " New Waiver"}`}
-            buttons={
-              <Button color="inherit" onClick={submitForm} disabled={!pdf}>
-                Save
-              </Button>
-            }
-          />
+          >
+            <Button color="inherit" onClick={submitForm} disabled={!pdf}>
+              Save
+            </Button>
+          </AppBar>
           <Grid container>
             <Grid item xs={12} lg={6}>
               <div className={classes.top}>

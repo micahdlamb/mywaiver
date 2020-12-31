@@ -18,6 +18,7 @@ import {
 import OpenInNewIcon from "@material-ui/icons/OpenInNew";
 
 import { AppBar } from "./Page";
+import SearchInput from "./SearchInput";
 
 import * as server from "./server";
 
@@ -41,7 +42,9 @@ export default function Submissions() {
 
   return (
     <>
-      <AppBar title={`${config.title} Submissions`} onSearch={search} />
+      <AppBar title={`${config.title} Submissions`}>
+        <SearchInput onSearch={search} />
+      </AppBar>
       <Box p={2} mx={"auto"} maxWidth={1200}>
         {submissions ? (
           submissions.length ? (

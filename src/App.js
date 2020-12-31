@@ -9,6 +9,7 @@ import LandingPage from "./LandingPage";
 import { MyWaivers, DemoWaivers } from "./Links";
 import Waiver from "./Waiver";
 import Submissions from "./Submissions";
+import UsageChart from "./UsageChart";
 import Configure from "./Configure";
 
 export default function App() {
@@ -34,6 +35,9 @@ export default function App() {
             </Route>
             <Route exact path="/:template/submissions">
               <Submissions />
+            </Route>
+            <Route exact path="/:template/usage">
+              <UsageChart/>
             </Route>
             <Route exact path={["/:template/configure", "/configure/new"]}>
               <Configure />

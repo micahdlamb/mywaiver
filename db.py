@@ -74,7 +74,7 @@ async def update_template(cur, name, tpl):
 ########################################################################################################################
 
 @acquire_cursor
-async def save_waiver(cur, template, bytes, fields):
+async def submit(cur, template, bytes, fields):
     await cur.execute("""
         insert into waiver(template_id, pdf)
         values((select id from waiver_template where name=?), ?)
@@ -89,15 +89,7 @@ async def save_waiver(cur, template, bytes, fields):
         """, waiver_id, name, value)
 
 @acquire_cursor
-async def record_use(cur, template, waiver_id):
-    await cur.execute("""
-        update waiver set last_use_date = CURRENT_TIMESTAMP
-        where template_id = (select id from waiver_template where name = ?)
-          and id = ?
-    """, template, waiver_id)
-
-@acquire_cursor
-async def get_waivers(cur, template, limit=100, **where):
+async def get_submissions(cur, template, limit=100, **where):
     joins   = '\n'.join(f'''join waiver_field f{i} on f{i}.waiver_id = w.id and f{i}.name = ?'''
                         for i in range(len(where)))
     filters = '\n'.join(f'and f{i}.value = ?' for i in range(len(where)))
@@ -112,7 +104,7 @@ async def get_waivers(cur, template, limit=100, **where):
     return await _fetchall_waivers(cur)
 
 @acquire_cursor
-async def search_waivers(cur, template, query, limit=100):
+async def search_submissions(cur, template, query, limit=100):
     await cur.execute("""
         select distinct top (?) w.id, w.last_use_date
         from waiver w
@@ -143,6 +135,39 @@ async def get_submission_pdf(cur, template, id):
     """, template, id)
     row = await cur.fetchone()
     return row[0]
+
+@acquire_cursor
+async def record_use(cur, template, waiver_id):
+    await cur.execute("""
+        update waiver set last_use_date = CURRENT_TIMESTAMP
+        where template_id = (select id from waiver_template where name = ?)
+          and id = ?
+    """, template, waiver_id)
+
+@acquire_cursor
+async def get_use_counts(cur, template, group_by):
+    if group_by == 'day':
+        group_by = "FORMAT(u.timestamp, 'yyyy-MM-dd')"
+        from_date = "getDate() - 14"
+    elif group_by == 'month':
+        group_by = "FORMAT(u.timestamp, 'yyyy-MM')"
+        from_date = "getDate() - 365"
+
+    elif group_by == 'year':
+        group_by = "FORMAT(u.timestamp, 'yyyy')"
+        from_date = "getDate() - 1095"
+
+    await cur.execute(f"""
+        select {group_by} as group_by, count(*) as count 
+        from waiver_use u
+        join waiver w on u.waiver_id = w.id
+        where w.template_id = (select id from waiver_template where name = ?)
+          and u.timestamp > {from_date}
+        group by {group_by}
+        order by group_by asc
+    """, template)
+    rows = await cur.fetchall()
+    return [*zip(*rows)]
 
 ########################################################################################################################
 from datetime import timezone

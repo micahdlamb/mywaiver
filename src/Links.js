@@ -8,11 +8,13 @@ import {
   ListItem,
   ListItemSecondaryAction,
   Link,
+  ButtonGroup,
   Button,
   IconButton,
 } from "@material-ui/core";
 import AddIcon from "@material-ui/icons/Add";
 import HistoryIcon from "@material-ui/icons/History";
+import BarChartIcon from "@material-ui/icons/BarChart";
 import SettingsIcon from "@material-ui/icons/Settings";
 
 import Page from "./Page";
@@ -62,9 +64,6 @@ const useStyles = makeStyles((theme) => ({
       flex: 1,
     },
   },
-  configure: {
-    right: "50px",
-  },
 }));
 
 function Links({ templates }) {
@@ -77,26 +76,26 @@ function Links({ templates }) {
           <Link component={RouterLink} to={`/${template}`}>
             {title}
           </Link>
-          <ListItemSecondaryAction className={classes.configure}>
-            <IconButton
-              edge="end"
-              aria-label="configure"
-              component={RouterLink}
-              to={`/${template}/configure`}
-            >
-              <SettingsIcon />
-            </IconButton>
-          </ListItemSecondaryAction>
           <ListItemSecondaryAction>
-            <IconButton
-              edge="end"
-              aria-label="submissions"
-              color="primary"
-              component={RouterLink}
-              to={`/${template}/submissions`}
-            >
-              <HistoryIcon />
-            </IconButton>
+            <ButtonGroup>
+              <IconButton
+                color="primary"
+                component={RouterLink}
+                to={`/${template}/submissions`}
+              >
+                <HistoryIcon />
+              </IconButton>
+              <IconButton
+                color="secondary"
+                component={RouterLink}
+                to={`/${template}/usage`}
+              >
+                <BarChartIcon />
+              </IconButton>
+              <IconButton component={RouterLink} to={`/${template}/configure`}>
+                <SettingsIcon />
+              </IconButton>
+            </ButtonGroup>
           </ListItemSecondaryAction>
         </ListItem>
       ))}
