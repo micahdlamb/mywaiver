@@ -182,21 +182,17 @@ def compress_pdf(bytes):
         in_pdf.write(bytes)
     out_pdf_name = in_pdf.name + "-compressed"
     import subprocess
-    subprocess.call([
-        'gs', '-sDEVICE=pdfwrite',
-        '-dCompatibilityLevel=1.4',
-        '-dPDFSETTINGS=/default',
-        '-dNOPAUSE', '-dQUIET', '-dBATCH',
-        f'-sOutputFile={out_pdf_name}',
-        in_pdf.name
-    ])
+    subprocess.call(f"""
+        gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/screen
+        -dNOPAUSE -dQUIET -dBATCH -sOutputFile={out_pdf_name} {in_pdf.name}
+    """.split())
     with open(out_pdf_name, 'rb') as out_pdf:
         compressed = out_pdf.read()
     os.remove(in_pdf.name)
     os.remove(out_pdf_name)
     kb = lambda bytes: f'{len(bytes)//1000}kb'
     print(f'Compressed pdf {kb(bytes)} -> {kb(compressed)}')
-    return compressed
+    return compressed if len(compressed) < len(bytes) else bytes
 
 # Serve React App ######################################################################################################
 
