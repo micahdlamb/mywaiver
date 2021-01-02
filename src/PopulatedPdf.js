@@ -75,28 +75,29 @@ export async function populatePdf(template, config, values) {
   let templatePdf = await server.get_template_pdf(template);
   const pdf = await PDFDocument.load(templatePdf);
   const pages = pdf.getPages();
-  const page = pages[0];
-  const { height } = page.getSize();
   const helveticaFont = await pdf.embedFont(StandardFonts.Helvetica);
 
   for (let step of Object.values(config.steps)) {
     for (let [name, field] of Object.entries(step.fields)) {
       let value = values[name];
       if (!value || value.length === 0) continue;
+
       let pos = field.position;
       if (!pos) continue;
+      let [page, coord] = getPageCoord(pages, pos)
 
       if (value instanceof ArrayBuffer) {
         let png = await pdf.embedPng(value);
         page.drawImage(png, {
-          x: pos.left,
-          y: height - (pos.top + pos.height),
+          ...coord,
           width: pos.width,
           height: pos.height,
         });
 
         pos = field.timestampPosition;
         if (!pos) continue;
+        [page, coord] = getPageCoord(pages, pos);
+
         value = config.timestampFormat
           ? format(value.timestamp, config.timestampFormat)
           : value.timestamp.toDateString();
@@ -106,8 +107,8 @@ export async function populatePdf(template, config, values) {
         value = value.join(field.vertical ? "\n" : ", ");
 
       page.drawText(value.toString(), {
-        x: pos.left,
-        y: height - (pos.top + pos.height) + 2, // TODO Not sure why +2 is needed...
+        x: coord.x,
+        y: coord.y + 2, // TODO Not sure why +2 is needed...
         size: pos.height * 1.25,
         font: helveticaFont,
       });
@@ -115,4 +116,20 @@ export async function populatePdf(template, config, values) {
   }
 
   return pdf.save();
+}
+
+function getPageCoord(pages, pos){
+  let top = pos.top;
+  for (var page of pages) {
+    var { height } = page.getSize();
+    if (top < height) break;
+    top -= height;
+  }
+  return [
+    page,
+    {
+      x: pos.left,
+      y: height - (top + pos.height),
+    },
+  ];
 }
