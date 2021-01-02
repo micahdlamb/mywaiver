@@ -1,4 +1,4 @@
-import os
+import os, functools, asyncio
 from quart import Quart, jsonify, request, session, send_from_directory, make_response, url_for, exceptions
 import httpx; http = httpx.AsyncClient()
 import db
@@ -93,10 +93,16 @@ async def _getTemplateFromRequest():
     files = await request.files
     form = await request.form
 
+    if 'pdf' in files:
+        pdf = files['pdf'].read()
+        pdf = await compress_pdf(pdf)
+    else:
+        pdf = None
+
     return dict(
         owner = session.get('user', ''),
         name = form['name'],
-        pdf = files['pdf'].read() if 'pdf' in files else None,
+        pdf = pdf,
         config = form['config']
     )
 
@@ -161,6 +167,36 @@ async def email_pdf(pdf, to):
         await server.starttls()
         await server.login(os.environ['from_email'], os.environ['gmail_app_password'])
         await server.send_message(msg, os.environ['from_email'], to)
+
+def run_in_executor(f):
+    @functools.wraps(f)
+    def run(*args, **kwargs):
+        loop = asyncio.get_running_loop()
+        return loop.run_in_executor(None, lambda: f(*args, **kwargs))
+    return run
+
+@run_in_executor
+def compress_pdf(bytes):
+    import tempfile
+    with tempfile.NamedTemporaryFile('wb', delete=False) as in_pdf:
+        in_pdf.write(bytes)
+    out_pdf_name = in_pdf.name + "-compressed"
+    import subprocess
+    subprocess.call([
+        'gs', '-sDEVICE=pdfwrite',
+        '-dCompatibilityLevel=1.4',
+        '-dPDFSETTINGS=/default',
+        '-dNOPAUSE', '-dQUIET', '-dBATCH',
+        f'-sOutputFile={out_pdf_name}',
+        in_pdf.name
+    ])
+    with open(out_pdf_name, 'rb') as out_pdf:
+        compressed = out_pdf.read()
+    os.remove(in_pdf.name)
+    os.remove(out_pdf_name)
+    kb = lambda bytes: f'{len(bytes)//1000}kb'
+    print(f'Compressed pdf {kb(bytes)} -> {kb(compressed)}')
+    return compressed
 
 # Serve React App ######################################################################################################
 
