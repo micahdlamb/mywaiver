@@ -147,15 +147,15 @@ async def record_use(cur, template, waiver_id):
 @acquire_cursor
 async def get_use_counts(cur, template, group_by):
     if group_by == 'day':
-        group_by = "FORMAT(u.timestamp, 'yyyy-MM-dd')"
-        from_date = "getDate() - 14"
+        group_by = "format(u.timestamp, 'yyyy-MM-dd')"
+        from_date = "format(getDate() - 14, 'yyyy-MM-dd')"
     elif group_by == 'month':
-        group_by = "FORMAT(u.timestamp, 'yyyy-MM')"
-        from_date = "getDate() - 365"
+        group_by = "format(u.timestamp, 'yyyy-MM')"
+        from_date = "format(getDate() - 365, 'yyyy-MM-01')"
 
     elif group_by == 'year':
         group_by = "FORMAT(u.timestamp, 'yyyy')"
-        from_date = "getDate() - 1095"
+        from_date = "format(getDate() - 1095, 'yyyy-01-01')"
 
     await cur.execute(f"""
         select {group_by} as group_by, count(*) as count 
