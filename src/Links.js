@@ -6,11 +6,11 @@ import {
   Typography,
   List,
   ListItem,
-  ListItemSecondaryAction,
   Link,
-  ButtonGroup,
   Button,
   IconButton,
+  Box,
+  Divider,
 } from "@material-ui/core";
 import AddIcon from "@material-ui/icons/Add";
 import HistoryIcon from "@material-ui/icons/History";
@@ -38,10 +38,19 @@ export function MyWaivers() {
           Create
         </Button>
       </Typography>
-      <Links templates={templates} />
-      {!templates.length && (
+      {templates.length ? (
+        <>
+          <Links templates={templates} />
+          <Divider />
+          <Box p={2}>
+            <Typography variant="caption">
+              Bookmark the waiver url on your signing tablet.
+            </Typography>
+          </Box>
+        </>
+      ) : (
         <Typography align="center" color="textSecondary">
-          No waivers setup for {user}
+          No waivers setup
         </Typography>
       )}
     </Page>
@@ -59,10 +68,12 @@ export function DemoWaivers() {
 }
 
 const useStyles = makeStyles((theme) => ({
-  root: {
-    "& a.MuiLink-root": {
-      flex: 1,
-    },
+  // Similar to ListItemSecondaryAction
+  buttons: {
+    position: "absolute",
+    top: "50%",
+    right: 0,
+    transform: "translateY(-50%)",
   },
 }));
 
@@ -72,31 +83,29 @@ function Links({ templates }) {
   return (
     <List component="nav" className={classes.root}>
       {templates.map(([template, title]) => (
-        <ListItem button key={template}>
+        <ListItem key={template}>
           <Link component={RouterLink} to={`/${template}`}>
             {title}
           </Link>
-          <ListItemSecondaryAction>
-            <ButtonGroup>
-              <IconButton
-                color="primary"
-                component={RouterLink}
-                to={`/${template}/submissions`}
-              >
-                <HistoryIcon />
-              </IconButton>
-              <IconButton
-                color="secondary"
-                component={RouterLink}
-                to={`/${template}/usage`}
-              >
-                <BarChartIcon />
-              </IconButton>
-              <IconButton component={RouterLink} to={`/${template}/configure`}>
-                <SettingsIcon />
-              </IconButton>
-            </ButtonGroup>
-          </ListItemSecondaryAction>
+          <div className={classes.buttons}>
+            <IconButton
+              color="primary"
+              component={RouterLink}
+              to={`/${template}/submissions`}
+            >
+              <HistoryIcon />
+            </IconButton>
+            <IconButton
+              color="secondary"
+              component={RouterLink}
+              to={`/${template}/usage`}
+            >
+              <BarChartIcon />
+            </IconButton>
+            <IconButton component={RouterLink} to={`/${template}/configure`}>
+              <SettingsIcon />
+            </IconButton>
+          </div>
         </ListItem>
       ))}
     </List>
