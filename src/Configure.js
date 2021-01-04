@@ -79,7 +79,29 @@ export default function Configure() {
             reuseSubmission: "",
             emailTo: [],
             timestampFormat: timestampFormats[0],
-            steps: {},
+            steps: {
+              Contact: {
+                showPdf: false,
+                fields: {
+                  email: {
+                    label: "Email",
+                    type: "email",
+                    required: true,
+                    reuse: true,
+                  },
+                },
+              },
+              Sign: {
+                showPdf: true,
+                fields: {
+                  signature: {
+                    label: "Signature",
+                    type: "signature",
+                    required: true,
+                  },
+                },
+              },
+            },
           },
         };
     return { ...tpl, config: objectToArray(tpl.config) };
@@ -143,7 +165,11 @@ export default function Configure() {
           <AppBar
             title={`Configure ${template ? values.title : " New Waiver"}`}
           >
-            <Button color="inherit" onClick={submitForm} disabled={!pdf}>
+            <Button
+              color="inherit"
+              onClick={submitForm}
+              disabled={!pdf || !values.steps.length}
+            >
               Save
             </Button>
           </AppBar>
@@ -163,6 +189,23 @@ export default function Configure() {
                   </Button>
                 </label>
               </div>
+              {pdf && (
+                <Typography component="div" variant="caption" align="center">
+                  Drag signatures/fields into place{" "}
+                  <Help size="small">
+                    <ul>
+                      <li>
+                        Keep the signature draggable's aspect ratio similar to
+                        the signature pad or it can appear stretched.
+                      </li>
+                      <li>
+                        The inserted text height will match the draggable's
+                        height.
+                      </li>
+                    </ul>
+                  </Help>
+                </Typography>
+              )}
               <Pdf file={pdf} config={values} />
             </Grid>
             <Grid item xs={12} lg={6} className={classes.right}>
@@ -283,8 +326,8 @@ let Step = ({ step, path, add, remove }) => (
                 <Typography variant="h6">
                   Fields{" "}
                   <Help>
-                    Information you want to collect. A simple waiver might just
-                    require a field for the user's name and signature. The
+                    Information you want to collect. A simple waiver might
+                    require a field for the user's email and signature. The
                     field's <b>name</b> is a unique identifier that you want to
                     avoid changing. The label is what actually gets displayed.
                   </Help>
@@ -390,36 +433,39 @@ let ConfigField = ({ field, path, add, remove }) => (
           color="primary"
         />
       </Grid>
-      <Grid item xs={6}>
-        <Field
-          component={CheckboxWithLabel}
-          type="checkbox"
-          name={`${path}.multiple`}
-          Label={{ label: "Multiple" }}
-          disabled={field.type === "signature" || field.multiline}
-          color="primary"
-        />
-      </Grid>
-      <Grid item xs={6}>
-        <Field
-          component={CheckboxWithLabel}
-          type="checkbox"
-          name={`${path}.multiline`}
-          Label={{ label: "Multiline" }}
-          disabled={field.type !== "text" || field.multiple}
-          color="primary"
-        />
-      </Grid>
-      <Grid item xs={6}>
-        <Field
-          component={CheckboxWithLabel}
-          type="checkbox"
-          name={`${path}.vertical`}
-          Label={{ label: "Vertical" }}
-          disabled={field.type === "signature" || !field.multiple}
-          color="primary"
-        />
-      </Grid>
+      {field.type === "text" && !field.multiline && (
+        <Grid item xs={6}>
+          <Field
+            component={CheckboxWithLabel}
+            type="checkbox"
+            name={`${path}.multiple`}
+            Label={{ label: "Multiple" }}
+            color="primary"
+          />
+        </Grid>
+      )}
+      {field.type === "text" && !field.multiple && (
+        <Grid item xs={6}>
+          <Field
+            component={CheckboxWithLabel}
+            type="checkbox"
+            name={`${path}.multiline`}
+            Label={{ label: "Multiline" }}
+            color="primary"
+          />
+        </Grid>
+      )}
+      {field.type === "text" && field.multiple && (
+        <Grid item xs={6}>
+          <Field
+            component={CheckboxWithLabel}
+            type="checkbox"
+            name={`${path}.vertical`}
+            Label={{ label: "Vertical" }}
+            color="primary"
+          />
+        </Grid>
+      )}
       <Grid item xs={12} className="space-between">
         <IconButton onClick={remove}>
           <DeleteIcon />
@@ -626,7 +672,7 @@ const useHelpStyles = makeStyles((theme) => ({
   },
 }));
 
-function Help({ children }) {
+function Help({ children, ...props }) {
   const classes = useHelpStyles();
   const [anchorEl, setAnchorEl] = React.useState(null);
 
@@ -648,6 +694,7 @@ function Help({ children }) {
         variant="contained"
         color="primary"
         onClick={handleClick}
+        {...props}
       >
         <HelpIcon />
       </IconButton>
@@ -665,7 +712,9 @@ function Help({ children }) {
           horizontal: "center",
         }}
       >
-        <Typography className={classes.typography}>{children}</Typography>
+        <Typography className={classes.typography} component="div">
+          {children}
+        </Typography>
       </Popover>
     </>
   );
