@@ -33,6 +33,7 @@ import ChipInput from "./ChipInput";
 import { Rnd } from "react-rnd";
 
 import { AppBar } from "./Page";
+import WYSIWYGInput from "./WYSIWYGInput";
 import * as server from "./server";
 import * as snackbar from "./snackbar";
 
@@ -233,6 +234,13 @@ export default function Configure() {
                       component={ChipInput}
                       name="emailTo"
                       label="Email Signed Waivers To"
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <WYSIWYGInput
+                      name="splashPage"
+                      label="Splash Page"
                       fullWidth
                     />
                   </Grid>

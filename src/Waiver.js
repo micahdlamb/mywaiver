@@ -29,6 +29,11 @@ import * as server from "./server";
 import * as snackbar from "./snackbar";
 
 const useStyles = makeStyles((theme) => ({
+  splash: {
+    "& img": {
+      maxWidth: "100%",
+    },
+  },
   stepper: {
     padding: theme.spacing(3, 0, 5),
   },
@@ -44,9 +49,10 @@ const useStyles = makeStyles((theme) => ({
 export default function Waiver() {
   const classes = useStyles();
   let { template } = useParams();
-  let [activeStep, setActiveStep] = useState(0);
-
   let config = server.get_template_config(template);
+
+  let firstStep = config.splashPage ? -1 : 0;
+  let [activeStep, setActiveStep] = useState(firstStep);
   let stepNames = Object.keys(config.steps);
   let isLastStep = activeStep === stepNames.length - 1;
   let step = Object.values(config.steps)[activeStep];
@@ -54,6 +60,29 @@ export default function Waiver() {
   const handleBack = () => {
     setActiveStep(activeStep - 1);
   };
+
+  if (activeStep === -1)
+    return (
+      <Page title={config.title} contentWidth={600}>
+        <Grid container spacing={3} className={classes.splash}>
+          <Grid
+            item
+            xs={12}
+            dangerouslySetInnerHTML={{ __html: config.splashPage }}
+          />
+        </Grid>
+        <Grid item xs={12} className={classes.buttons}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={(e) => setActiveStep(0)}
+          >
+            Begin
+          </Button>
+        </Grid>
+        <div />
+      </Page>
+    );
 
   return (
     <Page title={config.title} contentWidth={600}>
@@ -91,7 +120,7 @@ export default function Waiver() {
             await server.submit(template, pdf, keep);
             snackbar.success("Thank you for your submission!");
             resetForm();
-            setActiveStep(0);
+            setActiveStep(firstStep);
           } else {
             setActiveStep(activeStep + 1);
             setTouched({});
