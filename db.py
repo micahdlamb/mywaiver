@@ -67,8 +67,10 @@ async def create_template(cur, tpl):
 @acquire_cursor
 async def update_template(cur, name, tpl):
     pdfAssign, pdfParam = ("pdf=?,", [tpl["pdf"]]) if tpl["pdf"] else ("", ())
-    await cur.execute(f"update waiver_template set name=?, {pdfAssign} config=? where name=? and owner=?",
-                      tpl["name"], *pdfParam, tpl["config"], name, tpl["owner"])
+    await cur.execute(f"""
+        update waiver_template set name=?, {pdfAssign} config=?
+        where name=? and (owner = '' or owner=?)
+    """, tpl["name"], *pdfParam, tpl["config"], name, tpl["owner"])
     templates.pop(name, None)
 
 ########################################################################################################################
