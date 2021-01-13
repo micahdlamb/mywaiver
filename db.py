@@ -60,18 +60,57 @@ async def _get_template(cur, name):
     return dict(id=row[0], pdf=row[1], config=json.loads(row[2]))
 
 @acquire_cursor
+async def get_template_image(cur, id):
+    await cur.execute("select bytes from waiver_template_image where id = ?", id)
+    row = await cur.fetchone()
+    return row[0]
+
+@acquire_cursor
 async def create_template(cur, tpl):
+    config = await _store_images(cur, tpl["name"], tpl["config"])
     await cur.execute("insert into waiver_template(name, owner, pdf, config) values(?, ?, ?, ?)",
-                      tpl['name'], tpl['owner'], tpl["pdf"], tpl["config"])
+                      tpl['name'], tpl['owner'], tpl["pdf"], config)
 
 @acquire_cursor
 async def update_template(cur, name, tpl):
+    config = await _store_images(cur, tpl["name"], tpl["config"])
     pdfAssign, pdfParam = ("pdf=?,", [tpl["pdf"]]) if tpl["pdf"] else ("", ())
     await cur.execute(f"""
         update waiver_template set name=?, {pdfAssign} config=?
         where name=? and (owner = '' or owner=?)
-    """, tpl["name"], *pdfParam, tpl["config"], name, tpl["owner"])
+    """, tpl["name"], *pdfParam, config, name, tpl["owner"])
     templates.pop(name, None)
+
+async def _store_images(cur, template, config):
+    import re, uuid, base64
+    ids = []
+    new = {}
+    def sub(match):
+        url = match.group(1)
+        if url.startswith("data:"):
+            id = str(uuid.uuid4())
+            bytes = base64.b64decode(url.split(",")[-1])
+            new[id] = bytes
+        else:
+            id = url.rsplit("/", 1)[-1]
+        ids.append(id)
+        return f'src=\\"/img/{id}\\"'
+
+    config = re.sub(r'src=\\"(.*?)\\"', sub, config)
+
+    await cur.execute(f"""
+        delete from waiver_template_image
+        where template_id = (select id from waiver_template where name=?)
+          and id not in (''{',?'*len(ids)})
+    """, template, *ids)
+
+    for id, bytes in new.items():
+        await cur.execute("""
+            insert into waiver_template_image(id, template_id, bytes)
+            values(?, (select id from waiver_template where name=?), ?)
+        """, id, template, bytes)
+
+    return config
 
 ########################################################################################################################
 

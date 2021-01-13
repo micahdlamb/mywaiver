@@ -71,6 +71,14 @@ async def get_template_config(template):
     tpl = await db.get_template(template)
     return jsonify(tpl['config'])
 
+@app.route('/img/<id>')
+async def get_template_image(id):
+    bytes = await db.get_template_image(id)
+    resp = await make_response(bytes)
+    resp.headers.set('Content-Type', 'image/*')
+    resp.cache_control.max_age = 30758400
+    return resp
+
 @app.route('/<template>/get_template')
 async def get_template(template):
     tpl = await db.get_template(template)
