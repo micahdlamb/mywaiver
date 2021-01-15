@@ -4,9 +4,10 @@ import PropTypes from "prop-types";
 import { Link as RouterLink } from "react-router-dom";
 import SwipeableViews from "react-swipeable-views";
 import { useTheme, Typography, Box, Tabs, Tab, Link } from "@material-ui/core";
-import CreateIcon from "@material-ui/icons/Create";
 import HelpIcon from "@material-ui/icons/Help";
+import MonetizationOnIcon from "@material-ui/icons/MonetizationOn";
 import AssignmentTurnedInIcon from "@material-ui/icons/AssignmentTurnedIn";
+import SettingsIcon from "@material-ui/icons/Settings";
 
 import Page from "./Page";
 
@@ -38,11 +39,15 @@ export default function LandingPage() {
           textColor="secondary"
           centered
         >
-          <Tab icon={<CreateIcon />} label="WHAT" {...a11yProps(0)} />
-          <Tab icon={<HelpIcon />} label="WHY" {...a11yProps(1)} />
+          <Tab icon={<HelpIcon />} label="WHAT IS THIS?" {...a11yProps(0)} />
+          <Tab
+            icon={<MonetizationOnIcon />}
+            label="PRICING"
+            {...a11yProps(1)}
+          />
           <Tab
             icon={<AssignmentTurnedInIcon />}
-            label="HOW"
+            label="GET STARTED"
             {...a11yProps(2)}
           />
         </Tabs>
@@ -52,25 +57,45 @@ export default function LandingPage() {
           onChangeIndex={handleChangeIndex}
         >
           <TabPanel value={value} index={0} dir={theme.direction}>
-            Stop wasting paper and start using My Waiver App to e-sign and store your
-            waivers. You can see a demo of signing a waiver{" "}
-            <Link component={RouterLink} to="/bounce_house__d7shgy09j">
-              here.
-            </Link>
+            <p>Easily turn your pdf into an e-signable waiver.</p>
+            <p>Use any mobile device as a waiver signing station.</p>
+            <p>
+              Signed waivers are securely stored and can be easily looked up
+              should the need arise.
+            </p>
+            <p>
+              You can see a demo of signing a waiver{" "}
+              <Link component={RouterLink} to="/bounce_house__d7shgy09j">
+                here.
+              </Link>
+            </p>
+            <p>
+              This site is under active development. Reach out to
+              micah.d.lamb@gmail.com for questions and feature requests.
+            </p>
           </TabPanel>
           <TabPanel value={value} index={1} dir={theme.direction}>
-            Other electric waiver signing apps are way too expensive! MyWaiver
-            is dedicated to keeping the cost per waiver the cheapest of all
-            competitors.
+            <p>Other waiver signing apps are way too expensive!</p>
+            <p>
+              You're first month is free. After that you'll pay $5 a month + 2
+              cents per waiver signed.
+            </p>
+            <p>
+              You're waivers will be stored as long as you continue with the
+              service. If you leave you'll have 6 months to download them.
+            </p>
           </TabPanel>
           <TabPanel value={value} index={2} dir={theme.direction}>
-            Setup is simple using an existing pdf. Signature positions are
-            configured by dragging them into place. You can get started by
-            logging in and clicking <b>CREATE</b>. Example waivers and their
-            setup are available{" "}
-            <Link component={RouterLink} to="/demos">
-              here.
-            </Link>
+            Setup is simple using an existing pdf. You can get started by
+            logging in with a google account and clicking <b>CREATE</b> to setup
+            your first waiver.
+            <p>
+              Checkout some example waivers{" "}
+              <Link component={RouterLink} to="/demos">
+                here.
+              </Link>{" "}
+              Click <SettingsIcon /> to see their configuration.
+            </p>
           </TabPanel>
         </SwipeableViews>
       </Page>
@@ -91,7 +116,7 @@ function TabPanel(props) {
     >
       {value === index && (
         <Box p={3}>
-          <Typography>{children}</Typography>
+          <Typography component="div">{children}</Typography>
         </Box>
       )}
     </div>
