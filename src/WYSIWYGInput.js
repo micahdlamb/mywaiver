@@ -15,14 +15,9 @@ import CloseIcon from "@material-ui/icons/Close";
 
 import { useField } from "formik";
 
-async function lazyLoadDraftJS() {
-  ({ EditorState, ContentState, convertToRaw } = await import("draft-js"));
-  ({ Editor } = await import("react-draft-wysiwyg"));
-  ({ default: draftToHtml } = await import("draftjs-to-html"));
-  ({ default: htmlToDraft } = await import("html-to-draftjs"));
-  await import("react-draft-wysiwyg/dist/react-draft-wysiwyg.css");
-}
-let EditorState, ContentState, convertToRaw, Editor, draftToHtml, htmlToDraft;
+import { EditorState, convertFromRaw, convertToRaw } from "draft-js";
+import { Editor } from "react-draft-wysiwyg";
+import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 
 const useStyles = makeStyles((theme) => ({
   input: {
@@ -51,15 +46,10 @@ function WYSIWYGInput({ value, label, onChange, ...props }) {
   let [editorState, setEditorState] = useState(null);
 
   async function edit() {
-    await lazyLoadDraftJS();
-    const blocksFromHtml = htmlToDraft(value || "");
-    const { contentBlocks, entityMap } = blocksFromHtml;
-    const contentState = ContentState.createFromBlockArray(
-      contentBlocks,
-      entityMap
-    );
-    const editorState = EditorState.createWithContent(contentState);
-    setEditorState(editorState);
+    if (value) {
+      let content = convertFromRaw(value);
+      setEditorState(EditorState.createWithContent(content));
+    } else setEditorState(EditorState.createEmpty());
     setOpen(true);
   }
 
@@ -69,14 +59,13 @@ function WYSIWYGInput({ value, label, onChange, ...props }) {
 
   function clear(e) {
     setOpen(false);
-    onChange("");
+    onChange(null);
   }
 
   function save(e) {
     setOpen(false);
     let content = editorState.getCurrentContent();
-    let html = draftToHtml(convertToRaw(content));
-    onChange(html);
+    onChange(convertToRaw(content));
   }
 
   return (
@@ -142,6 +131,13 @@ export default function (props) {
   const [field, , helpers] = useField(props);
   field.onChange = helpers.setValue;
   return <WYSIWYGInput {...field} {...props} />;
+}
+
+export function renderDraftJSContent(value) {
+  if (!value) return null;
+  const contentState = convertFromRaw(value);
+  const editorState = EditorState.createWithContent(contentState);
+  return <Editor editorState={editorState} readOnly toolbarHidden />;
 }
 
 const encodeToBase64 = (file) =>

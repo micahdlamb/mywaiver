@@ -94,9 +94,9 @@ async def _store_images(cur, template, config):
         else:
             id = url.rsplit("/", 1)[-1]
         ids.append(id)
-        return f'src=\\"/img/{id}\\"'
+        return f'"src":"/img/{id}"'
 
-    config = re.sub(r'src=\\"(.*?)\\"', sub, config)
+    config = re.sub('"src":"(.*?)"', sub, config)
 
     await cur.execute(f"""
         delete from waiver_template_image

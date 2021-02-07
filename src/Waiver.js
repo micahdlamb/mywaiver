@@ -22,6 +22,7 @@ import ChipInput from "./ChipInput";
 
 import Page from "./Page";
 import SignatureInput from "./SignatureInput";
+import { renderDraftJSContent } from "./WYSIWYGInput";
 import ReuseSubmission from "./ReuseSubmission";
 import PopulatedPdf, { populatePdf } from "./PopulatedPdf";
 
@@ -65,11 +66,9 @@ export default function Waiver() {
     return (
       <Page title={config.title} contentWidth={600}>
         <Grid container spacing={3} className={classes.splash}>
-          <Grid
-            item
-            xs={12}
-            dangerouslySetInnerHTML={{ __html: config.splashPage }}
-          />
+          <Grid item xs={12}>
+            {renderDraftJSContent(config.splashPage)}
+          </Grid>
         </Grid>
         <Grid item xs={12} className={classes.buttons}>
           <Button
